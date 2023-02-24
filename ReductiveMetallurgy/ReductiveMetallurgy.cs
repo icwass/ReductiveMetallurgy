@@ -12,14 +12,9 @@ namespace ReductiveMetallurgy;
 
 using PartType = class_139;
 using Permissions = enum_149;
-//using BondType = enum_126;
-//using BondSite = class_222;
 using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
-
-
-
 
 public class MainClass : QuintessentialMod
 {
@@ -47,15 +42,19 @@ public class MainClass : QuintessentialMod
 		}
 	}
 
+	public static bool applyRejectionRule(AtomType hi, out AtomType lo)
+	{
+		lo = hi;
+		bool ret = demoteDict.ContainsKey(hi);
+		if (ret) lo = demoteDict[hi];
+		return ret;
+	}
+
 
 	// private resources
 	private static IDetour hook_Sim_method_1832;
 
 	private static Dictionary<AtomType, AtomType> demoteDict = new();
-	private static HexIndex[] rejectionHexes = new HexIndex[2] {
-		new HexIndex(0, 0),
-		new HexIndex(1, 0)
-	};
 	private static Texture[] irisQuicksilver = new Texture[16];
 
 	// private helper functions
@@ -174,7 +173,7 @@ public class MainClass : QuintessentialMod
 			"glyph-rejection",
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
-			20, rejectionHexes, Permissions.Projection,
+			20, new HexIndex[2] {new HexIndex(0, 0), new HexIndex(1, 0)}, Permissions.Projection,
 			class_235.method_615(path + "rejection"),
 			class_235.method_615(path + "rejection_hover"),
 			class_238.field_1989.field_97.field_374,// double_glow
@@ -346,13 +345,14 @@ public class MainClass : QuintessentialMod
 				HexIndex hexOutput = new HexIndex(1, 0);
 				AtomReference atomDemote;
 				AtomReference atomOutput;
+				AtomType rejectedAtomType;
 				if (maybeFindAtom(part, hexReject, new List<Part>()).method_99(out atomDemote) // demotable atom exists - don't care if it's held
 				&& !maybeFindAtom(part, hexOutput, new List<Part>()).method_99(out atomOutput) // output not blocked
-				&& (demoteDict.ContainsKey(atomDemote.field_2280)) // demote atom can be demoted
+				&& applyRejectionRule(atomDemote.field_2280, out rejectedAtomType)
 				) // then fire the rejection glyph!
 				{
 					// update the metal atom's type
-					atomDemote.field_2277.method_1106(demoteDict[atomDemote.field_2280], atomDemote.field_2278);
+					atomDemote.field_2277.method_1106(rejectedAtomType, atomDemote.field_2278);
 					// play the atom-change animation
 					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
 					atomDemote.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomDemote.field_2280, projectAtomAnimation, 30f);
