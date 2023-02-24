@@ -64,6 +64,11 @@ public class MainClass : QuintessentialMod
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
 	private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
 
+	private static void changeAtomTypeOfAtom(AtomReference atomReference, AtomType newAtomType)
+	{
+		atomReference.field_2277.method_1106(newAtomType, atomReference.field_2278);
+	}
+
 	private static void playSound(Sim sim_self, Sound sound)
 	{
 		typeof(Sim).GetMethod("method_1856", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sim_self, new object[] { sound });
@@ -188,6 +193,7 @@ public class MainClass : QuintessentialMod
 
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture rejection_leadSymbol = class_235.method_615(path + "rejection_lead_symbol");
+		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
 		/*
 		for (int i = 0; i < 16; i++)
@@ -200,7 +206,7 @@ public class MainClass : QuintessentialMod
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 
-		Texture calcinationGlyph_bowl = class_238.field_1989.field_90.field_170;
+		//Texture calcinationGlyph_bowl = class_238.field_1989.field_90.field_170;
 
 		Texture projectionGlyph_base = class_238.field_1989.field_90.field_255.field_288;
 		Texture projectionGlyph_bond = class_238.field_1989.field_90.field_255.field_289;
@@ -233,23 +239,20 @@ public class MainClass : QuintessentialMod
 			var metalHex = originHex;
 			var outputHex = new HexIndex(1, 0);
 
+			float partAngle = renderer.field_1798;
 			Vector2 base_offset = new Vector2(41f, 48f);
 			drawPartGraphic(renderer, projectionGlyph_base, base_offset, 0.0f, Vector2.Zero, new Vector2(-1f, -1f));
 
 			//draw metal bowl
 			drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(metalHex), new Vector2(0.0f, -3f));
 			drawPartGraphicSpecular(renderer, projectionGlyph_metalBowl, textureCenter(projectionGlyph_metalBowl), 0f, hexGraphicalOffset(metalHex), Vector2.Zero);
-			drawPartGraphic(renderer, rejection_leadSymbol, textureCenter(rejection_leadSymbol), -renderer.field_1798, hexGraphicalOffset(metalHex), Vector2.Zero);
+			drawPartGraphic(renderer, rejection_leadSymbol, textureCenter(rejection_leadSymbol), -partAngle, hexGraphicalOffset(metalHex), Vector2.Zero);
 
 			//draw quicksilver output
 			drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(outputHex), new Vector2(0.0f, -3f));
-			drawPartGraphicSpecular(renderer, calcinationGlyph_bowl, textureCenter(calcinationGlyph_bowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-			class_126 atomCageLighting = class_238.field_1989.field_90.field_232;
-			float angle = renderer.field_1798;
-			Vector2 translation = renderer.field_1797 + hexGraphicalOffset(new HexIndex(1, 0)).Rotated(angle);
-			var Method_2003 = typeof(SolutionEditorBase).GetMethod("method_2003", BindingFlags.NonPublic | BindingFlags.Static);
-			Method_2003.Invoke(null, new object[] { atomCageLighting, translation, new Vector2(39f, 33f), angle });
-			drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphicSpecular(renderer, projectionGlyph_metalBowl, textureCenter(projectionGlyph_metalBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphic(renderer, rejection_metalBowlTarget, textureCenter(rejection_metalBowlTarget), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, projectionGlyph_bond, base_offset + new Vector2(-73f, -37f), 0f, Vector2.Zero, Vector2.Zero);
 			//gloss start
@@ -293,16 +296,14 @@ public class MainClass : QuintessentialMod
 		List<Part> gripperList = new List<Part>();
 		foreach (Part part in partList)
 		{
-			foreach (Part key in part.field_2696)//for each gripper
+			foreach (Part key in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))//for each gripper that is holding a molecule
 			{
-				if (partSimStates[key].field_2729.method_1085())//if part is holding onto a molecule
-				{
-					gripperList.Add(key);//add gripper to gripperList
-					//expanded version of sim_self.method_1842(key);//release molecule from the gripper
-					PartSimState partSimState = partSimStates[key];
-					partSimState.field_2728 = false;
-					partSimState.field_2729 = struct_18.field_1431;
-				}
+				//add gripper to gripperList
+				gripperList.Add(key);
+				//expanded version of sim_self.method_1842(key);//release molecule from the gripper
+				PartSimState partSimState = partSimStates[key];
+				partSimState.field_2728 = false;
+				partSimState.field_2729 = struct_18.field_1431;
 			}
 		}
 		//----- BOILERPLATE-1 END -----//
@@ -351,19 +352,18 @@ public class MainClass : QuintessentialMod
 				&& applyRejectionRule(atomDemote.field_2280, out rejectedAtomType)
 				) // then fire the rejection glyph!
 				{
-					// update the metal atom's type
-					atomDemote.field_2277.method_1106(rejectedAtomType, atomDemote.field_2278);
-					// play the atom-change animation
+					changeAtomTypeOfAtom(atomDemote, rejectedAtomType);
+					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
+					playSound(sim_self, class_238.field_1991.field_1844); // projection sound
+					//atom-change animation
 					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
 					atomDemote.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomDemote.field_2280, projectAtomAnimation, 30f);
-					// play the glyph-flash animation
-					Vector2 hexPosition = class_187.field_1742.method_492(part.method_1161() + hexReject.Rotated(part.method_1163()));
+					//glyph-flash animation
+					Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexReject.Rotated(part.method_1163()));
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
 					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
-					playSound(sim_self, class_238.field_1991.field_1844); // projection sound
-					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
-
+					//spawning animation
 					Texture[] disposalFlashAnimation = class_238.field_1989.field_90.field_240;
 					Vector2 animationPosition = hexGraphicalOffset(part.method_1161() + hexOutput.Rotated(part.method_1163())) + new Vector2(80f, 0f);
 					SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
@@ -381,50 +381,48 @@ public class MainClass : QuintessentialMod
 
 		//----- BOILERPLATE-2 START -----//
 		List<Molecule> source1 = new List<Molecule>();
-		foreach (Molecule molecule9 in moleculeList)
+		foreach (Molecule molecule9 in moleculeList.Where(x=>x.field_2638))
 		{
-			if (molecule9.field_2638)
+			HashSet<HexIndex> source2 = new HashSet<HexIndex>(molecule9.method_1100().Keys);
+			Queue<HexIndex> hexIndexQueue = new Queue<HexIndex>();
+			while (source2.Count > 0)
 			{
-				HashSet<HexIndex> source2 = new HashSet<HexIndex>(molecule9.method_1100().Keys);
-				Queue<HexIndex> hexIndexQueue = new Queue<HexIndex>();
-				while (source2.Count > 0)
+				if (hexIndexQueue.Count == 0)
 				{
-					if (hexIndexQueue.Count == 0)
-					{
-						HexIndex key = source2.First<HexIndex>();
-						source2.Remove(key);
-						hexIndexQueue.Enqueue(key);
-						source1.Add(new Molecule());
-						source1.Last<Molecule>().method_1105(molecule9.method_1100()[key], key);
-					}
-					HexIndex hexIndex = hexIndexQueue.Dequeue();
-					foreach (class_277 class277 in (IEnumerable<class_277>)molecule9.method_1101())
-					{
-						Maybe<HexIndex> maybe = (Maybe<HexIndex>)struct_18.field_1431;
-						if (class277.field_2187 == hexIndex)
-							maybe = (Maybe<HexIndex>)class277.field_2188;
-						else if (class277.field_2188 == hexIndex)
-							maybe = (Maybe<HexIndex>)class277.field_2187;
-						if (maybe.method_1085() && source2.Contains(maybe.method_1087()))
-						{
-							source2.Remove(maybe.method_1087());
-							hexIndexQueue.Enqueue(maybe.method_1087());
-							source1.Last<Molecule>().method_1105(molecule9.method_1100()[maybe.method_1087()], maybe.method_1087());
-						}
-					}
+					HexIndex key = source2.First<HexIndex>();
+					source2.Remove(key);
+					hexIndexQueue.Enqueue(key);
+					source1.Add(new Molecule());
+					source1.Last<Molecule>().method_1105(molecule9.method_1100()[key], key);
 				}
+				HexIndex hexIndex = hexIndexQueue.Dequeue();
 				foreach (class_277 class277 in (IEnumerable<class_277>)molecule9.method_1101())
 				{
-					foreach (Molecule molecule10 in source1)
+					Maybe<HexIndex> maybe = (Maybe<HexIndex>)struct_18.field_1431;
+					if (class277.field_2187 == hexIndex)
+						maybe = (Maybe<HexIndex>)class277.field_2188;
+					else if (class277.field_2188 == hexIndex)
+						maybe = (Maybe<HexIndex>)class277.field_2187;
+					if (maybe.method_1085() && source2.Contains(maybe.method_1087()))
 					{
-						if (molecule10.method_1100().ContainsKey(class277.field_2187))
-						{
-							molecule10.method_1111(class277.field_2186, class277.field_2187, class277.field_2188);
-							break;
-						}
+						source2.Remove(maybe.method_1087());
+						hexIndexQueue.Enqueue(maybe.method_1087());
+						source1.Last<Molecule>().method_1105(molecule9.method_1100()[maybe.method_1087()], maybe.method_1087());
 					}
 				}
 			}
+			foreach (class_277 class277 in (IEnumerable<class_277>)molecule9.method_1101())
+			{
+				foreach (Molecule molecule10 in source1)
+				{
+					if (molecule10.method_1100().ContainsKey(class277.field_2187))
+					{
+						molecule10.method_1111(class277.field_2186, class277.field_2187, class277.field_2188);
+						break;
+					}
+				}
+			}
+			
 		}
 		moleculeList.RemoveAll(Sim.class_301.field_2479 ?? (mol => mol.field_2638));
 		moleculeList.AddRange((IEnumerable<Molecule>)source1);
