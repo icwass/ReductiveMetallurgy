@@ -19,29 +19,29 @@ using Texture = class_256;
 public class MainClass : QuintessentialMod
 {
 	// public resources, helper functions and APIs
-	public static PartType glyphRejection;
+	public static PartType glyphRejection, glyphSplitting;
 
 	public static void addRejectionRule(AtomType hi, AtomType lo)
 	{
-		bool flag = demoteDict.ContainsKey(hi);
-		if (flag && demoteDict[hi] != lo)
+		var dict = demoteDict;
+		bool flag = dict.ContainsKey(hi);
+		if (flag && dict[hi] != lo)
 		{
 			//throw an error
 			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
 			msg += "\n  Current list of Rejection Rules:";
-			foreach (var kvp in demoteDict)
+			foreach (var kvp in dict)
 			{
 				msg += "\n    " + kvp.Key.field_2284 + " => " + kvp.Value.field_2284;
 			}
-			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => " + demoteDict[hi].field_2284 + "'.";
+			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => " + dict[hi].field_2284 + "'.";
 			throw new class_266("addRejectionRule: Cannot add Rejection rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
 		}
 		else if (!flag)
 		{
-			demoteDict.Add(hi, lo);
+			dict.Add(hi, lo);
 		}
 	}
-
 	public static bool applyRejectionRule(AtomType hi, out AtomType lo)
 	{
 		lo = hi;
@@ -49,16 +49,48 @@ public class MainClass : QuintessentialMod
 		if (ret) lo = demoteDict[hi];
 		return ret;
 	}
-
-
+	public static void addSplittingRule(AtomType hi, Pair<AtomType, AtomType> lo)
+	{
+		var dict = splitDict;
+		bool flag = dict.ContainsKey(hi);
+		if (flag && dict[hi] != lo)
+		{
+			//throw an error
+			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
+			msg += "\n  Current list of Splitting Rules:";
+			foreach (var kvp in dict)
+			{
+				msg += "\n    " + kvp.Key.field_2284 + " => < " + kvp.Value.Left.field_2284 + ", " + kvp.Value.Right.field_2284 + ">";
+			}
+			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
+			throw new class_266("addRejectionRule: Cannot add Rejection rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
+		}
+		else if (!flag)
+		{
+			dict.Add(hi, lo);
+		}
+	}
+	public static bool applySplittingRule(AtomType hi, out Pair<AtomType, AtomType> lo)
+	{
+		lo = new Pair<AtomType, AtomType>(hi,hi);
+		bool ret = splitDict.ContainsKey(hi);
+		if (ret) lo = splitDict[hi];
+		return ret;
+	}
 	// private resources
 	private static IDetour hook_Sim_method_1832;
 
 	private static Dictionary<AtomType, AtomType> demoteDict = new();
-	private static Texture[] irisQuicksilver = new Texture[16];
+	private static Dictionary<AtomType, Pair<AtomType, AtomType>> splitDict = new();
 
 	// private helper functions
 	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
+	private static AtomType leadAtomType() => AtomTypes.field_1681;
+	private static AtomType tinAtomType() => AtomTypes.field_1683;
+	private static AtomType ironAtomType() => AtomTypes.field_1684;
+	private static AtomType copperAtomType() => AtomTypes.field_1682;
+	private static AtomType silverAtomType() => AtomTypes.field_1685;
+	private static AtomType goldAtomType() => AtomTypes.field_1686;
 
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
@@ -142,6 +174,25 @@ public class MainClass : QuintessentialMod
 		drawPartGraphic(renderer, tex, graphicPivot, graphicAngle + specularAngle, graphicTranslation, screenTranslation);
 	}
 
+	private void drawPartGloss(class_195 renderer, Texture gloss, Texture glossMask, Vector2 offset)
+	{
+		class_135.method_257().field_1692 = class_238.field_1995.field_1757; // MaskedGlossPS shader
+		class_135.method_257().field_1693[1] = gloss;
+		class_135.method_257().field_1695 = method_2001(renderer, new HexIndex(0, 0));
+		drawPartGraphic(renderer, glossMask, offset, 0f, Vector2.Zero, Vector2.Zero);
+		class_135.method_257().field_1692 = class_135.method_257().field_1696; // previous shader
+		class_135.method_257().field_1693[1] = class_238.field_1989.field_71;
+		class_135.method_257().field_1695 = Vector2.Zero;
+	}
+
+
+
+
+
+
+
+
+
 	private static Vector2 method_1999(class_195 renderer, HexIndex param_5572)
 	{
 		return renderer.field_1797 + hexGraphicalOffset(param_5572).Rotated(renderer.field_1798);
@@ -171,6 +222,15 @@ public class MainClass : QuintessentialMod
 			}
 		}
 
+		//add splitting rules for vanilla metals
+		addSplittingRule(goldAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
+		addSplittingRule(silverAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
+		addSplittingRule(copperAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
+		addSplittingRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
+		addSplittingRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
+
+
+		//make glyphs
 		string path;
 		path = "reductiveMetallurgy/textures/parts/icons/";
 
@@ -185,23 +245,29 @@ public class MainClass : QuintessentialMod
 			class_238.field_1989.field_97.field_375 // double_stroke
 		);
 
+		glyphSplitting = makeGlyph(
+			"glyph-splitting",
+			"Glyph of Splitting",
+			"The glyph of splitting can separate an atom of metal into two atoms of lower form.",
+			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, Permissions.Purification,
+			class_235.method_615(path + "splitting"),
+			class_235.method_615(path + "splitting_hover"),
+			class_238.field_1989.field_97.field_386,// triple_glow
+			class_238.field_1989.field_97.field_387 // triple_stroke
+		);
+
 		var projector = PartTypes.field_1778;
 		var purifier = PartTypes.field_1779;
 
 		QApi.AddPartTypeToPanel(glyphRejection, projector);
+		QApi.AddPartTypeToPanel(glyphSplitting, purifier);
 
 
 		path = "reductiveMetallurgy/textures/parts/";
-		Texture rejection_leadSymbol = class_235.method_615(path + "rejection_lead_symbol");
+		Texture leadSymbolBowlDown = class_235.method_615(path + "rejection_lead_symbol");
 		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
-		/*
-		for (int i = 0; i < 16; i++)
-		{
-			irisQuicksilver[i] = class_235.method_615(path + "iris_full_quicksilver.array/iris_full_" + (i + 1).ToString("0000"));
-		}
-		*/
-
+		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
 
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
@@ -214,21 +280,21 @@ public class MainClass : QuintessentialMod
 		Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
 
 		//Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
-		//Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
+		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
 		//Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
 
 		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
 		
-		//Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
-		//Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
+		Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
+		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
 
 		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
 
-		//Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
+		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
 		//Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
 
-		//Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
+		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
 
 		QApi.AddPartType(glyphRejection, (part, pos, editor, renderer) =>
 		{
@@ -246,7 +312,7 @@ public class MainClass : QuintessentialMod
 			//draw metal bowl
 			drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(metalHex), new Vector2(0.0f, -3f));
 			drawPartGraphicSpecular(renderer, projectionGlyph_metalBowl, textureCenter(projectionGlyph_metalBowl), 0f, hexGraphicalOffset(metalHex), Vector2.Zero);
-			drawPartGraphic(renderer, rejection_leadSymbol, textureCenter(rejection_leadSymbol), -partAngle, hexGraphicalOffset(metalHex), Vector2.Zero);
+			drawPartGraphic(renderer, leadSymbolBowlDown, textureCenter(leadSymbolBowlDown), -partAngle, hexGraphicalOffset(metalHex), Vector2.Zero);
 
 			//draw quicksilver output
 			drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(outputHex), new Vector2(0.0f, -3f));
@@ -255,15 +321,59 @@ public class MainClass : QuintessentialMod
 			drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, projectionGlyph_bond, base_offset + new Vector2(-73f, -37f), 0f, Vector2.Zero, Vector2.Zero);
-			//gloss start
-			class_135.method_257().field_1692 = class_238.field_1995.field_1757; // MaskedGlossPS shader
-			class_135.method_257().field_1693[1] = purificationGlyph_gloss;
-			class_135.method_257().field_1695 = method_2001(renderer, originHex);
-			renderer.method_521(projectionGlyph_glossMask, base_offset);
-			class_135.method_257().field_1692 = class_135.method_257().field_1696; // previous shader
-			class_135.method_257().field_1693[1] = class_238.field_1989.field_71;
-			class_135.method_257().field_1695 = Vector2.Zero;
-			//gloss end
+			drawPartGloss(renderer, purificationGlyph_gloss, projectionGlyph_glossMask, base_offset);
+		});
+
+		QApi.AddPartType(glyphSplitting, (part, pos, editor, renderer) =>
+		{
+			PartSimState partSimState = editor.method_507().method_481(part);
+			var simTime = editor.method_504();
+
+			var originHex = new HexIndex(0, 0);
+			var leftHex = originHex;
+			var rightHex = new HexIndex(1, 0);
+			var inputHex = new HexIndex(0, 1);
+			float partAngle = renderer.field_1798;
+			Vector2 base_offset = new Vector2(41f, 48f);
+
+			int index = irisFullArray.Length - 1;
+			float num = 0f;
+			bool flag = false;
+			void drawOutputAtom(HexIndex hex)
+			{
+				Molecule molecule = Molecule.method_1121(partSimState.field_2744[hex.Q].field_2297.method_1087());
+				Editor.method_925(molecule, method_1999(renderer, hex), originHex, 0f, 1f, num, 1f, false, null);
+			}
+			if (partSimState.field_2743)
+			{
+				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				num = simTime;
+				flag = (double)simTime > 0.5;
+			}
+
+			drawPartGraphic(renderer, purificationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+			{
+				drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
+				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				if (partSimState.field_2743 && !flag) drawOutputAtom(hex);
+				drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphic(renderer, leadSymbolBowlDown, textureCenter(leadSymbolBowlDown), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+				if (index == irisFullArray.Length - 1)
+					drawPartGraphic(renderer, leadSymbolBowlDown, textureCenter(leadSymbolBowlDown), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+			}
+			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+			drawPartGraphic(renderer, leadSymbolInputDown, textureCenter(leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
+			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+
+			if (flag)
+			{
+				drawOutputAtom(leftHex);
+				drawOutputAtom(rightHex);
+			}
 		});
 
 
@@ -425,7 +535,7 @@ public class MainClass : QuintessentialMod
 			
 		}
 		moleculeList.RemoveAll(Sim.class_301.field_2479 ?? (mol => mol.field_2638));
-		moleculeList.AddRange((IEnumerable<Molecule>)source1);
+		moleculeList.AddRange(source1);
 		
 		foreach (Part part in gripperList)
 		{
