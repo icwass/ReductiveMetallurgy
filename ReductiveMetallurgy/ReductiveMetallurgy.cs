@@ -264,7 +264,7 @@ public class MainClass : QuintessentialMod
 
 
 		path = "reductiveMetallurgy/textures/parts/";
-		Texture leadSymbolBowlDown = class_235.method_615(path + "rejection_lead_symbol");
+		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
 		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
 		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
@@ -279,7 +279,7 @@ public class MainClass : QuintessentialMod
 		Texture projectionGlyph_glossMask = class_238.field_1989.field_90.field_255.field_290;
 		Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
 
-		//Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
+		Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
 		//Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
 
@@ -341,7 +341,7 @@ public class MainClass : QuintessentialMod
 			bool flag = false;
 			void drawOutputAtom(HexIndex hex)
 			{
-				Molecule molecule = Molecule.method_1121(partSimState.field_2744[hex.Q].field_2297.method_1087());
+				Molecule molecule = Molecule.method_1121(partSimState.field_2744[hex.Q]);
 				Editor.method_925(molecule, method_1999(renderer, hex), originHex, 0f, 1f, num, 1f, false, null);
 			}
 			if (partSimState.field_2743)
@@ -360,9 +360,11 @@ public class MainClass : QuintessentialMod
 				if (partSimState.field_2743 && !flag) drawOutputAtom(hex);
 				drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphic(renderer, leadSymbolBowlDown, textureCenter(leadSymbolBowlDown), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 				if (index == irisFullArray.Length - 1)
-					drawPartGraphic(renderer, leadSymbolBowlDown, textureCenter(leadSymbolBowlDown), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+				{
+					Texture tex = hex == leftHex ? projectionGlyph_leadSymbol : leadSymbolBowlDown;
+					drawPartGraphic(renderer, tex, textureCenter(tex), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+				}
 			}
 			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, leadSymbolInputDown, textureCenter(leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
@@ -427,15 +429,15 @@ public class MainClass : QuintessentialMod
 			return (Maybe<AtomReference>)Method_1850.Invoke(sim_self, new object[] { part, hex, gripperList, false });
 		}
 
-		//void addColliderAtHex(Part part, HexIndex hex)
-		//{
-		//	struct122List.Add(new Sim.struct_122()
-		//	{
-		//		field_3850 = (Sim.enum_190)0,
-		//		field_3851 = class_187.field_1742.method_491(part.method_1184(hex), Vector2.Zero),
-		//		field_3852 = 15f // Sim.field_3832;
-		//	});
-		//}
+		void addColliderAtHex(Part part, HexIndex hex)
+		{
+			struct122List.Add(new Sim.struct_122()
+			{
+				field_3850 = (Sim.enum_190)0,
+				field_3851 = hexGraphicalOffset(part.method_1184(hex)),
+				field_3852 = 15f // Sim.field_3832;
+			});
+		}
 
 		void spawnAtomAtHex(Part part, HexIndex hex, AtomType atom)
 		{
@@ -443,6 +445,9 @@ public class MainClass : QuintessentialMod
 			molecule.method_1105(new Atom(atom), part.method_1184(hex));
 			moleculeList.Add(molecule);
 		}
+
+		Sound projectionActivate = class_238.field_1991.field_1844;
+		Sound purificationActivate = class_238.field_1991.field_1845;
 
 		// fire the glyphs!
 		foreach (Part part in partList)
@@ -455,16 +460,15 @@ public class MainClass : QuintessentialMod
 				HexIndex hexReject = new HexIndex(0, 0);
 				HexIndex hexOutput = new HexIndex(1, 0);
 				AtomReference atomDemote;
-				AtomReference atomOutput;
 				AtomType rejectedAtomType;
 				if (maybeFindAtom(part, hexReject, new List<Part>()).method_99(out atomDemote) // demotable atom exists - don't care if it's held
-				&& !maybeFindAtom(part, hexOutput, new List<Part>()).method_99(out atomOutput) // output not blocked
+				&& !maybeFindAtom(part, hexOutput, new List<Part>()).method_99(out _) // output not blocked
 				&& applyRejectionRule(atomDemote.field_2280, out rejectedAtomType)
 				) // then fire the rejection glyph!
 				{
 					changeAtomTypeOfAtom(atomDemote, rejectedAtomType);
 					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
-					playSound(sim_self, class_238.field_1991.field_1844); // projection sound
+					playSound(sim_self, projectionActivate);
 					//atom-change animation
 					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
 					atomDemote.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomDemote.field_2280, projectAtomAnimation, 30f);
@@ -477,6 +481,49 @@ public class MainClass : QuintessentialMod
 					Texture[] disposalFlashAnimation = class_238.field_1989.field_90.field_240;
 					Vector2 animationPosition = hexGraphicalOffset(part.method_1161() + hexOutput.Rotated(part.method_1163())) + new Vector2(80f, 0f);
 					SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
+				}
+			}
+			else if (partType == glyphSplitting)
+			{
+				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexRight = new HexIndex(1, 0);
+				HexIndex hexInput = new HexIndex(0, 1);
+
+				if (!glyphIsFiring(partSimState))
+				{
+					AtomReference atomSplit;
+					Pair<AtomType, AtomType> splitAtomTypePair;
+
+					if (isConsumptionHalfstep
+					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
+					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
+					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomSplit) // splittable atom exists
+					&& !atomSplit.field_2281 // a single atom
+					&& !atomSplit.field_2282 // not held by a gripper
+					&& applySplittingRule(atomSplit.field_2280, out splitAtomTypePair) // is splittable
+					)
+					{
+						//
+						//var splitAtomType = atomSplit.field_2280;
+
+						atomSplit.field_2277.method_1107(atomSplit.field_2278); // delete the input atom
+
+						glyphNeedsToFire(partSimState);
+						// tell draw-code what atoms are coming out
+						partSimState.field_2744 = new AtomType[2] { splitAtomTypePair.Left, splitAtomTypePair.Right };
+						playSound(sim_self, purificationActivate);
+
+						// draw input getting consumed
+						SEB.field_3937.Add(new class_286(SEB, atomSplit.field_2278, atomSplit.field_2280));
+						
+						addColliderAtHex(part, hexLeft);
+						addColliderAtHex(part, hexRight);
+					}
+				}
+				else
+				{
+					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
+					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
 				}
 			}
 
