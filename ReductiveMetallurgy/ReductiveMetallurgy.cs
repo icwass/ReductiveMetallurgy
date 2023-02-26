@@ -19,10 +19,35 @@ using Texture = class_256;
 public class MainClass : QuintessentialMod
 {
 	// public resources, helper functions and APIs
-	public static PartType glyphRejection, glyphSplitting;
+	public static PartType glyphRejection, glyphSplitting, glyphProliferation;
+
+	Permissions perm_rejection = (Permissions)524288; // 0x00080000
+	Permissions perm_splitting = (Permissions)1048576; // 0x00100000
+	//Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
+	Permissions perm_proliferation = Permissions.None; // 0x00000000
+
+	#region unused_permissions
+	//Permissions unused = (Permissions)16; // 0x00000010
+	//Permissions unused = (Permissions)32; // 0x00000020
+	//Permissions unused = (Permissions)64; // 0x00000040
+	//Permissions unused = (Permissions)128; // 0x00000080
+
+	//Permissions unused = (Permissions)134217728; // 0x08000000
+
+	//Permissions unused = (Permissions)536870912; // 0x20000000
+	//Permissions unused = (Permissions)1073741824; // 0x40000000
+	//Permissions unused = (Permissions)2147483648; // 0x80000000
+	#endregion
 
 	public static void addRejectionRule(AtomType hi, AtomType lo)
 	{
+		if (hi == quicksilverAtomType())
+		{
+			//throw an error
+			string msg = "[ReductiveMetallurgy] ERROR: A rejection rule for quicksilver is not permitted.";
+			Logger.Log(msg);
+			throw new class_266("addRejectionRule: Cannot add rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
+		}
 		var dict = demoteDict;
 		bool flag = dict.ContainsKey(hi);
 		if (flag && dict[hi] != lo)
@@ -35,7 +60,8 @@ public class MainClass : QuintessentialMod
 				msg += "\n    " + kvp.Key.field_2284 + " => " + kvp.Value.field_2284;
 			}
 			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => " + dict[hi].field_2284 + "'.";
-			throw new class_266("addRejectionRule: Cannot add Rejection rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
+			Logger.Log(msg);
+			throw new class_266("addRejectionRule: Cannot add rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
 		}
 		else if (!flag)
 		{
@@ -51,6 +77,14 @@ public class MainClass : QuintessentialMod
 	}
 	public static void addSplittingRule(AtomType hi, Pair<AtomType, AtomType> lo)
 	{
+		if (hi == leadAtomType() || hi == quicksilverAtomType())
+		{
+			//throw an error
+			string atom = hi == leadAtomType() ? "lead" : "quicksilver";
+			string msg = "[ReductiveMetallurgy] ERROR: A splitting rule for " + atom + " is not permitted.";
+			Logger.Log(msg);
+			throw new class_266("addSplittingRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
+		}
 		var dict = splitDict;
 		bool flag = dict.ContainsKey(hi);
 		if (flag && dict[hi] != lo)
@@ -62,8 +96,9 @@ public class MainClass : QuintessentialMod
 			{
 				msg += "\n    " + kvp.Key.field_2284 + " => < " + kvp.Value.Left.field_2284 + ", " + kvp.Value.Right.field_2284 + ">";
 			}
-			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
-			throw new class_266("addRejectionRule: Cannot add Rejection rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
+			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a splitting rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
+			Logger.Log(msg);
+			throw new class_266("addSplittingRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
 		}
 		else if (!flag)
 		{
@@ -77,11 +112,50 @@ public class MainClass : QuintessentialMod
 		if (ret) lo = splitDict[hi];
 		return ret;
 	}
+	public static void addProliferationRule(AtomType hi, Pair<AtomType, AtomType> lo)
+	{
+		if (hi == quicksilverAtomType())
+		{
+			//throw an error
+			string msg = "[ReductiveMetallurgy] ERROR: A proliferation rule for quicksilver is not permitted.";
+			Logger.Log(msg);
+			throw new class_266("addProliferationRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
+		}
+		var dict = prolifDict;
+		bool flag = dict.ContainsKey(hi);
+		if (flag && dict[hi] != lo)
+		{
+			//throw an error
+			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
+			msg += "\n  Current list of Proliferation Rules:";
+			foreach (var kvp in dict)
+			{
+				msg += "\n    " + kvp.Key.field_2284 + " => < " + kvp.Value.Left.field_2284 + ", " + kvp.Value.Right.field_2284 + ">";
+			}
+			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a proliferation rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
+			Logger.Log(msg);
+			throw new class_266("addProliferationRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
+		}
+		else if (!flag)
+		{
+			dict.Add(hi, lo);
+		}
+	}
+	public static bool applyProliferationRule(AtomType hi, out Pair<AtomType, AtomType> lo)
+	{
+		lo = new Pair<AtomType, AtomType>(hi, hi);
+		bool ret = prolifDict.ContainsKey(hi);
+		if (ret) lo = prolifDict[hi];
+		return ret;
+	}
+
+
 	// private resources
 	private static IDetour hook_Sim_method_1832;
 
 	private static Dictionary<AtomType, AtomType> demoteDict = new();
 	private static Dictionary<AtomType, Pair<AtomType, AtomType>> splitDict = new();
+	private static Dictionary<AtomType, Pair<AtomType, AtomType>> prolifDict = new();
 
 	// private helper functions
 	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
@@ -94,7 +168,7 @@ public class MainClass : QuintessentialMod
 
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
-	private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
+	//private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
 
 	private static void changeAtomTypeOfAtom(AtomReference atomReference, AtomType newAtomType)
 	{
@@ -104,6 +178,16 @@ public class MainClass : QuintessentialMod
 	private static void playSound(Sim sim_self, Sound sound)
 	{
 		typeof(Sim).GetMethod("method_1856", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sim_self, new object[] { sound });
+	}
+
+	private void drawAndExecutePermissionCheckbox(PuzzleEditorScreen pes_self, Vector2 position, string label, Permissions perms)
+	{
+		var pes_dyn = new DynamicData(pes_self);
+		var maybePuzzle = pes_dyn.Get<Maybe<Puzzle>>("field_2789");
+		if (!maybePuzzle.method_1085()) return;
+
+		var puzzle = maybePuzzle.method_1087();
+		typeof(PuzzleEditorScreen).GetMethod("method_1261", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(pes_self, new object[] { position, label, perms, puzzle });
 	}
 
 	private static PartType makeGlyph(
@@ -178,35 +262,23 @@ public class MainClass : QuintessentialMod
 	{
 		class_135.method_257().field_1692 = class_238.field_1995.field_1757; // MaskedGlossPS shader
 		class_135.method_257().field_1693[1] = gloss;
-		class_135.method_257().field_1695 = method_2001(renderer, new HexIndex(0, 0));
+		HexIndex hex = new HexIndex(0, 0);
+		Vector2 method2001 = 0.0001f * (renderer.field_1797 + hexGraphicalOffset(hex).Rotated(renderer.field_1798) - 0.5f * class_115.field_1433);
+		class_135.method_257().field_1695 = method2001;
 		drawPartGraphic(renderer, glossMask, offset, 0f, Vector2.Zero, Vector2.Zero);
 		class_135.method_257().field_1692 = class_135.method_257().field_1696; // previous shader
 		class_135.method_257().field_1693[1] = class_238.field_1989.field_71;
 		class_135.method_257().field_1695 = Vector2.Zero;
 	}
 
-
-
-
-
-
-
-
-
-	private static Vector2 method_1999(class_195 renderer, HexIndex param_5572)
+	private void drawAtomIO(class_195 renderer, AtomType atomType, HexIndex hex, float num)
 	{
-		return renderer.field_1797 + hexGraphicalOffset(param_5572).Rotated(renderer.field_1798);
+		Molecule molecule = Molecule.method_1121(atomType);
+		Vector2 method1999 = renderer.field_1797 + hexGraphicalOffset(hex).Rotated(renderer.field_1798);
+		Editor.method_925(molecule, method1999, new HexIndex(0,0), 0f, 1f, num, 1f, false, null);
 	}
-
-	private static Vector2 method_2001(class_195 param_5576, HexIndex param_5577)
-	{
-		return 0.0001f * (param_5576.field_1797 + hexGraphicalOffset(param_5577).Rotated(param_5576.field_1798) - 0.5f * class_115.field_1433);
-	}
-
-
 
 	// private main functions
-
 
 
 	// public main functions
@@ -229,6 +301,14 @@ public class MainClass : QuintessentialMod
 		addSplittingRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
 		addSplittingRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
 
+		//add proliferation rules for vanilla metals
+		addProliferationRule(goldAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), copperAtomType()));
+		addProliferationRule(silverAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), ironAtomType()));
+		addProliferationRule(copperAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
+		addProliferationRule(ironAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
+		addProliferationRule(tinAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
+		addProliferationRule(leadAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
+
 
 		//make glyphs
 		string path;
@@ -238,7 +318,7 @@ public class MainClass : QuintessentialMod
 			"glyph-rejection",
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
-			20, new HexIndex[2] {new HexIndex(0, 0), new HexIndex(1, 0)}, Permissions.Projection,
+			20, new HexIndex[2] {new HexIndex(0, 0), new HexIndex(1, 0)}, perm_rejection,
 			class_235.method_615(path + "rejection"),
 			class_235.method_615(path + "rejection_hover"),
 			class_238.field_1989.field_97.field_374,// double_glow
@@ -249,11 +329,22 @@ public class MainClass : QuintessentialMod
 			"glyph-splitting",
 			"Glyph of Splitting",
 			"The glyph of splitting can separate an atom of metal into two atoms of lower form.",
-			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, Permissions.Purification,
+			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, perm_splitting,
 			class_235.method_615(path + "splitting"),
 			class_235.method_615(path + "splitting_hover"),
 			class_238.field_1989.field_97.field_386,// triple_glow
 			class_238.field_1989.field_97.field_387 // triple_stroke
+		);
+
+		glyphProliferation = makeGlyph(
+			"glyph-proliferation",
+			"Glyph of proliferation",
+			"The glyph of proliferation consumes quicksilver and an atom of metal to generate two atoms of lower form.",
+			50, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, perm_proliferation,
+			class_235.method_615(path + "proliferation"),
+			class_235.method_615(path + "proliferation_hover"),
+			class_238.field_1989.field_97.field_368,// diamond_glow
+			class_238.field_1989.field_97.field_369 // diamond_stroke
 		);
 
 		var projector = PartTypes.field_1778;
@@ -261,6 +352,7 @@ public class MainClass : QuintessentialMod
 
 		QApi.AddPartTypeToPanel(glyphRejection, projector);
 		QApi.AddPartTypeToPanel(glyphSplitting, purifier);
+		QApi.AddPartTypeToPanel(glyphProliferation, purifier);
 
 
 		path = "reductiveMetallurgy/textures/parts/";
@@ -269,10 +361,29 @@ public class MainClass : QuintessentialMod
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
 		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
 
+		path = "reductiveMetallurgy/textures/parts/proliferation/";
+		Texture[] proliferationSymbols = new Texture[5]{
+			class_235.method_615(path + "symbol_divider"),
+			class_235.method_615(path + "symbol_quicksilver_inactive"),
+			class_235.method_615(path + "symbol_quicksilver_active"),
+			class_235.method_615(path + "symbol_lead_inactive"),
+			class_235.method_615(path + "symbol_lead_active")
+		};
+
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 
 		//Texture calcinationGlyph_bowl = class_238.field_1989.field_90.field_170;
+
+		Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
+		Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
+		Texture animismus_connectorsShadows = class_238.field_1989.field_90.field_228.field_267;
+		Texture animismus_gloss = class_238.field_1989.field_90.field_228.field_268;
+		Texture animismus_glossMask = class_238.field_1989.field_90.field_228.field_269;
+		Texture animismus_input = class_238.field_1989.field_90.field_228.field_270;
+		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
+		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
+		Texture animismus_ringShadow = class_238.field_1989.field_90.field_228.field_273;
 
 		Texture projectionGlyph_base = class_238.field_1989.field_90.field_255.field_288;
 		Texture projectionGlyph_bond = class_238.field_1989.field_90.field_255.field_289;
@@ -283,14 +394,9 @@ public class MainClass : QuintessentialMod
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
 		//Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
 
-		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
-		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
-		
 		Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
 		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
-
 		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
-
 		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
 		//Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
 
@@ -339,11 +445,6 @@ public class MainClass : QuintessentialMod
 			int index = irisFullArray.Length - 1;
 			float num = 0f;
 			bool flag = false;
-			void drawOutputAtom(HexIndex hex)
-			{
-				Molecule molecule = Molecule.method_1121(partSimState.field_2744[hex.Q]);
-				Editor.method_925(molecule, method_1999(renderer, hex), originHex, 0f, 1f, num, 1f, false, null);
-			}
 			if (partSimState.field_2743)
 			{
 				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
@@ -357,7 +458,10 @@ public class MainClass : QuintessentialMod
 			{
 				drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				if (partSimState.field_2743 && !flag) drawOutputAtom(hex);
+				if (partSimState.field_2743 && !flag)
+				{
+					drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+				}
 				drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (index == irisFullArray.Length - 1)
@@ -365,19 +469,96 @@ public class MainClass : QuintessentialMod
 					Texture tex = hex == leftHex ? projectionGlyph_leadSymbol : leadSymbolBowlDown;
 					drawPartGraphic(renderer, tex, textureCenter(tex), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 				}
+				if (flag)
+				{
+					drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+				}
 			}
 			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, leadSymbolInputDown, textureCenter(leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
-
-			if (flag)
-			{
-				drawOutputAtom(leftHex);
-				drawOutputAtom(rightHex);
-			}
 		});
 
+		QApi.AddPartType(glyphProliferation, (part, pos, editor, renderer) =>
+		{
+			var interface2 = editor.method_507();
+			PartSimState partSimState = interface2.method_481(part);
+			var simTime = editor.method_504();
+
+			var originHex = new HexIndex(0, 0);
+			var leftHex = originHex;
+			var rightHex = new HexIndex(1, 0);
+			var upHex = new HexIndex(0, 1);
+			var downHex = new HexIndex(1, -1);
+			float partAngle = renderer.field_1798;
+			Vector2 base_offset = new Vector2(41f, 120f);
+
+			int irisIndex = irisFullArray.Length - 1;
+			float num = 0f;
+			bool flag = false;
+			if (partSimState.field_2743)
+			{
+				irisIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				num = simTime;
+				flag = simTime > 0.5f;
+			}
+
+			List<AtomType> atomsOfferedAsInput = new List<AtomType>();
+			foreach (var hex in new HexIndex[2] { upHex, downHex })
+			{
+				Atom atom;
+				HexIndex key = part.method_1184(hex);
+				foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
+				{
+					if (molecule.method_1100().TryGetValue(key, out atom))
+						atomsOfferedAsInput.Add(atom.field_2275);
+				}
+			}
+
+			Texture[] symbolTextures = new Texture[3]
+			{
+				proliferationSymbols[0],
+				proliferationSymbols[ atomsOfferedAsInput.Contains(quicksilverAtomType()) ? 1 : 2],
+				proliferationSymbols[ atomsOfferedAsInput.Any(x => prolifDict.Keys.Contains(x)) ? 3 : 4]
+			};
+
+			drawPartGraphic(renderer, animismus_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			drawPartGraphic(renderer, animismus_connectorsShadows, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+
+			foreach (var hex in new HexIndex[4] { leftHex, rightHex, upHex, downHex })
+			{
+				bool isInputHex = hex.R != 0;
+				drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
+				if (isInputHex)
+				{
+					drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+					foreach (Texture texture in symbolTextures)
+						drawPartGraphic(renderer, texture, textureCenter(texture), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
+				}
+				else
+				{
+					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+					if (partSimState.field_2743 && !flag)
+						drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+					Texture irisFrame = irisFullArray[irisIndex];
+					drawPartGraphic(renderer, irisFrame, textureCenter(irisFrame), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
+					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+					if (irisIndex == irisFullArray.Length - 1)
+					{
+						Texture tex = hex == leftHex ? projectionGlyph_leadSymbol : leadSymbolBowlDown;
+						drawPartGraphic(renderer, tex, textureCenter(tex), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+					}
+					if (flag)
+					{
+						drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+					}
+				}
+			}
+
+			drawPartGraphic(renderer, animismus_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+			drawPartGloss(renderer, animismus_gloss, animismus_glossMask, base_offset + new Vector2(-1f, 0f));
+		});
 
 
 
@@ -446,6 +627,7 @@ public class MainClass : QuintessentialMod
 			moleculeList.Add(molecule);
 		}
 
+		Sound animismusActivate = class_238.field_1991.field_1838;
 		Sound projectionActivate = class_238.field_1991.field_1844;
 		Sound purificationActivate = class_238.field_1991.field_1845;
 
@@ -464,12 +646,11 @@ public class MainClass : QuintessentialMod
 				if (maybeFindAtom(part, hexReject, new List<Part>()).method_99(out atomDemote) // demotable atom exists - don't care if it's held
 				&& !maybeFindAtom(part, hexOutput, new List<Part>()).method_99(out _) // output not blocked
 				&& applyRejectionRule(atomDemote.field_2280, out rejectedAtomType)
-				) // then fire the rejection glyph!
+				)
 				{
-					changeAtomTypeOfAtom(atomDemote, rejectedAtomType);
-					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
 					playSound(sim_self, projectionActivate);
-					//atom-change animation
+					//demote input
+					changeAtomTypeOfAtom(atomDemote, rejectedAtomType);
 					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
 					atomDemote.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomDemote.field_2280, projectAtomAnimation, 30f);
 					//glyph-flash animation
@@ -477,10 +658,12 @@ public class MainClass : QuintessentialMod
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
 					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
-					//spawning animation
+					//take care of outputs
+					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
 					Texture[] disposalFlashAnimation = class_238.field_1989.field_90.field_240;
 					Vector2 animationPosition = hexGraphicalOffset(part.method_1161() + hexOutput.Rotated(part.method_1163())) + new Vector2(80f, 0f);
 					SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
+
 				}
 			}
 			else if (partType == glyphSplitting)
@@ -503,19 +686,14 @@ public class MainClass : QuintessentialMod
 					&& applySplittingRule(atomSplit.field_2280, out splitAtomTypePair) // is splittable
 					)
 					{
-						//
-						//var splitAtomType = atomSplit.field_2280;
-
-						atomSplit.field_2277.method_1107(atomSplit.field_2278); // delete the input atom
-
 						glyphNeedsToFire(partSimState);
-						// tell draw-code what atoms are coming out
-						partSimState.field_2744 = new AtomType[2] { splitAtomTypePair.Left, splitAtomTypePair.Right };
 						playSound(sim_self, purificationActivate);
-
+						// delete the input atom
+						atomSplit.field_2277.method_1107(atomSplit.field_2278);
 						// draw input getting consumed
 						SEB.field_3937.Add(new class_286(SEB, atomSplit.field_2278, atomSplit.field_2280));
-						
+						// take care of outputs
+						partSimState.field_2744 = new AtomType[2] { splitAtomTypePair.Left, splitAtomTypePair.Right };
 						addColliderAtHex(part, hexLeft);
 						addColliderAtHex(part, hexRight);
 					}
@@ -526,14 +704,64 @@ public class MainClass : QuintessentialMod
 					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
 				}
 			}
+			else if (partType == glyphProliferation)
+			{
+				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexRight = new HexIndex(1, 0);
+				HexIndex hexUp = new HexIndex(0, 1);
+				HexIndex hexDown = new HexIndex(1, -1);
 
+				if (!glyphIsFiring(partSimState))
+				{
+					AtomReference atomUp;
+					AtomReference atomDown;
 
+					if (isConsumptionHalfstep
+					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
+					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
+					&& maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp) // up atom exists
+					&& !atomUp.field_2281 // a single atom
+					&& !atomUp.field_2282 // not held by a gripper
+					&& maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
+					&& !atomDown.field_2281 // a single atom
+					&& !atomDown.field_2282 // not held by a gripper
+					&& (atomUp.field_2280 == quicksilverAtomType() || atomDown.field_2280 == quicksilverAtomType())
+					)
+					{
+						Pair<AtomType, AtomType> prolifAtomTypePair;
+						void fireProliferate(AtomReference atomProlif, AtomReference atomQuicksilver)
+						{
+							glyphNeedsToFire(partSimState);
+							playSound(sim_self, animismusActivate);
+							// delete the input atoms
+							atomProlif.field_2277.method_1107(atomProlif.field_2278);
+							atomQuicksilver.field_2277.method_1107(atomQuicksilver.field_2278);
+							// draw input getting consumed
+							SEB.field_3937.Add(new class_286(SEB, atomProlif.field_2278, atomProlif.field_2280));
+							SEB.field_3937.Add(new class_286(SEB, atomQuicksilver.field_2278, atomQuicksilver.field_2280));
+							// take care of outputs
+							partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
+							addColliderAtHex(part, hexLeft);
+							addColliderAtHex(part, hexRight);
 
-
-
-
-
-
+						}
+						
+						if (applyProliferationRule(atomUp.field_2280, out prolifAtomTypePair))
+						{
+							fireProliferate(atomUp, atomDown);
+						}
+						else if (applyProliferationRule(atomDown.field_2280, out prolifAtomTypePair))
+						{
+							fireProliferate(atomDown, atomUp);
+						}
+					}
+				}
+				else
+				{
+					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
+					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
+				}
+			}
 		}
 
 		//----- BOILERPLATE-2 START -----//
@@ -607,6 +835,19 @@ public class MainClass : QuintessentialMod
 	//------------------------- END HOOKING -------------------------//
 	public override void PostLoad()
 	{
-		//
+		On.PuzzleEditorScreen.method_50 += PES_Method_50;
+	}
+
+	public void PES_Method_50(On.PuzzleEditorScreen.orig_method_50 orig, PuzzleEditorScreen pes_self, float param_4993)
+	{
+		orig(pes_self, param_4993);
+		Vector2 base_position = new Vector2(1516f, 922f);
+		base_position = (class_115.field_1433 / 2 - base_position / 2 + new Vector2(-2f, -11f)).Rounded();
+		base_position = base_position + new Vector2(494f, 184f);
+
+		Vector2 offset(int x, int y) => new Vector2(236f * x, -37f * y);
+
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), glyphRejection.field_1529, perm_rejection);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), glyphSplitting.field_1529, perm_splitting);
 	}
 }
