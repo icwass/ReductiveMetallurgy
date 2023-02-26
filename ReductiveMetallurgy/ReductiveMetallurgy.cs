@@ -23,8 +23,7 @@ public class MainClass : QuintessentialMod
 
 	Permissions perm_rejection = (Permissions)524288; // 0x00080000
 	Permissions perm_splitting = (Permissions)1048576; // 0x00100000
-	//Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
-	Permissions perm_proliferation = Permissions.None; // 0x00000000
+	Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
 
 	#region unused_permissions
 	//Permissions unused = (Permissions)16; // 0x00000010
@@ -845,9 +844,10 @@ public class MainClass : QuintessentialMod
 		base_position = (class_115.field_1433 / 2 - base_position / 2 + new Vector2(-2f, -11f)).Rounded();
 		base_position = base_position + new Vector2(494f, 184f);
 
-		Vector2 offset(int x, int y) => new Vector2(236f * x, -37f * y);
+		Vector2 offset(float x, float y) => new Vector2(236f * x, -37f * y);
 
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), glyphRejection.field_1529, perm_rejection);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), glyphSplitting.field_1529, perm_splitting);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), "Rejection", perm_rejection);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0.5f, -1), "Splitting", perm_splitting);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Proliferation", perm_proliferation);
 	}
 }
