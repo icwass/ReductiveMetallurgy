@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="FTSIGCTU">
+      <HintPath>bin\Debug\net452\FTSIGCTU.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_ModdedLightning">
       <HintPath>bin\Debug\net452\MMHOOK_ModdedLightning.dll</HintPath>
     </Reference>

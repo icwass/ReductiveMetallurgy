@@ -38,121 +38,78 @@ public class MainClass : QuintessentialMod
 	//Permissions unused = (Permissions)2147483648; // 0x80000000
 	#endregion
 
-	public static void addRejectionRule(AtomType hi, AtomType lo)
+	public static bool applyRejectionRule(AtomType hi, out AtomType lo) => applyTRule(hi, rejectDict, out lo);
+	public static bool applySplittingRule(AtomType hi, out Pair<AtomType, AtomType> lo) => applyTRule(hi, splitDict, out lo);
+	public static bool applyProliferationRule(AtomType hi, out Pair<AtomType, AtomType> lo) => applyTRule(hi, prolifDict, out lo);
+	public static void addRejectionRule(AtomType hi, AtomType lo) => addTRule("rejection", hi, lo, rejectDict, new List<AtomType> { quicksilverAtomType(), leadAtomType() });
+	public static void addSplittingRule(AtomType hi, Pair<AtomType, AtomType> lo) => addTRule("splitting", hi, lo, splitDict, new List<AtomType> { quicksilverAtomType(), leadAtomType() });
+	public static void addProliferationRule(AtomType hi, Pair<AtomType, AtomType> lo) => addTRule("proliferation", hi, lo, prolifDict, new List<AtomType> { quicksilverAtomType() });
+
+	//rule-dictionary generics
+	private static bool applyTRule<T>(AtomType hi, Dictionary<AtomType, T> dict, out T lo)
 	{
-		if (hi == quicksilverAtomType())
-		{
-			//throw an error
-			string msg = "[ReductiveMetallurgy] ERROR: A rejection rule for quicksilver is not permitted.";
-			Logger.Log(msg);
-			throw new class_266("addRejectionRule: Cannot add rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
-		}
-		var dict = demoteDict;
-		bool flag = dict.ContainsKey(hi);
-		if (flag && dict[hi] != lo)
-		{
-			//throw an error
-			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
-			msg += "\n  Current list of Rejection Rules:";
-			foreach (var kvp in dict)
-			{
-				msg += "\n    " + kvp.Key.field_2284 + " => " + kvp.Value.field_2284;
-			}
-			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a rejection rule: '" + hi.field_2284 + " => " + dict[hi].field_2284 + "'.";
-			Logger.Log(msg);
-			throw new class_266("addRejectionRule: Cannot add rule '" + hi.field_2284 + " => " + lo.field_2284 + "'.");
-		}
-		else if (!flag)
-		{
-			dict.Add(hi, lo);
-		}
-	}
-	public static bool applyRejectionRule(AtomType hi, out AtomType lo)
-	{
-		lo = hi;
-		bool ret = demoteDict.ContainsKey(hi);
-		if (ret) lo = demoteDict[hi];
-		return ret;
-	}
-	public static void addSplittingRule(AtomType hi, Pair<AtomType, AtomType> lo)
-	{
-		if (hi == leadAtomType() || hi == quicksilverAtomType())
-		{
-			//throw an error
-			string atom = hi == leadAtomType() ? "lead" : "quicksilver";
-			string msg = "[ReductiveMetallurgy] ERROR: A splitting rule for " + atom + " is not permitted.";
-			Logger.Log(msg);
-			throw new class_266("addSplittingRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
-		}
-		var dict = splitDict;
-		bool flag = dict.ContainsKey(hi);
-		if (flag && dict[hi] != lo)
-		{
-			//throw an error
-			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
-			msg += "\n  Current list of Splitting Rules:";
-			foreach (var kvp in dict)
-			{
-				msg += "\n    " + kvp.Key.field_2284 + " => < " + kvp.Value.Left.field_2284 + ", " + kvp.Value.Right.field_2284 + ">";
-			}
-			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a splitting rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
-			Logger.Log(msg);
-			throw new class_266("addSplittingRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
-		}
-		else if (!flag)
-		{
-			dict.Add(hi, lo);
-		}
-	}
-	public static bool applySplittingRule(AtomType hi, out Pair<AtomType, AtomType> lo)
-	{
-		lo = new Pair<AtomType, AtomType>(hi,hi);
-		bool ret = splitDict.ContainsKey(hi);
-		if (ret) lo = splitDict[hi];
-		return ret;
-	}
-	public static void addProliferationRule(AtomType hi, Pair<AtomType, AtomType> lo)
-	{
-		if (hi == quicksilverAtomType())
-		{
-			//throw an error
-			string msg = "[ReductiveMetallurgy] ERROR: A proliferation rule for quicksilver is not permitted.";
-			Logger.Log(msg);
-			throw new class_266("addProliferationRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
-		}
-		var dict = prolifDict;
-		bool flag = dict.ContainsKey(hi);
-		if (flag && dict[hi] != lo)
-		{
-			//throw an error
-			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
-			msg += "\n  Current list of Proliferation Rules:";
-			foreach (var kvp in dict)
-			{
-				msg += "\n    " + kvp.Key.field_2284 + " => < " + kvp.Value.Left.field_2284 + ", " + kvp.Value.Right.field_2284 + ">";
-			}
-			msg += "\n\n  AtomType '" + hi.field_2284 + "' already has a proliferation rule: '" + hi.field_2284 + " => < " + dict[hi].Left.field_2284 + ", " + dict[hi].Right.field_2284 + ">'.";
-			Logger.Log(msg);
-			throw new class_266("addProliferationRule: Cannot add rule '" + hi.field_2284 + " => < " + lo.Left.field_2284 + ", " + lo.Right.field_2284 + ">'.");
-		}
-		else if (!flag)
-		{
-			dict.Add(hi, lo);
-		}
-	}
-	public static bool applyProliferationRule(AtomType hi, out Pair<AtomType, AtomType> lo)
-	{
-		lo = new Pair<AtomType, AtomType>(hi, hi);
-		bool ret = prolifDict.ContainsKey(hi);
-		if (ret) lo = prolifDict[hi];
+		lo = default(T);
+		bool ret = dict.ContainsKey(hi);
+		if (ret) lo = dict[hi];
 		return ret;
 	}
 
+	private static string ToString(AtomType A) => A.field_2284;
+
+	private static string ruleToString<T>(AtomType hi, T lo)
+	{
+		if (typeof(T) == typeof(AtomType))
+		{
+			return ToString(hi) + " => " + ToString((AtomType)(object)lo);
+		}
+		else if (typeof(T) == typeof(Pair<AtomType, AtomType>))
+		{
+			return ToString(hi) + " => ( " + ToString(((Pair<AtomType, AtomType>)(object)lo).Left) + ", " + ToString(((Pair<AtomType, AtomType>)(object)lo).Right) + " )";
+		}
+		return "";
+	}
+	private static bool TEquality<T>(T A, T B)
+	{
+		if (typeof(T) == typeof(AtomType))
+		{
+			return (AtomType)(object)A == (AtomType)(object)B;
+		} else if (typeof(T) == typeof(Pair<AtomType, AtomType>))
+		{
+			return (Pair<AtomType, AtomType>)(object)A == (Pair<AtomType, AtomType>)(object)B;
+		}
+		return false;
+	}
+
+	private static void addTRule<T>(string Tname, AtomType hi, T lo, Dictionary<AtomType, T> dict, List<AtomType> forbiddenInputs)
+	{
+		string TNAME = Tname.First().ToString().ToUpper() + Tname.Substring(1);
+		//check if rule is forbidden
+		if (forbiddenInputs.Contains(hi))
+		{
+			Logger.Log("[ReductiveMetallurgy] ERROR: A " + Tname + " rule for " + ToString(hi) + " is not permitted.");
+			throw new Exception("add" + TNAME + "Rule: Cannot add rule '" + ruleToString(hi, lo) + "'.");
+		}
+		//try to add rule
+		bool flag = dict.ContainsKey(hi);
+		if (flag && !TEquality(dict[hi], lo))
+		{
+			//throw an error
+			string msg = "[ReductiveMetallurgy] ERROR: Preparing debug dump.";
+			msg += "\n  Current list of " + TNAME + " Rules:";
+			foreach (var kvp in dict) msg += "\n\t" + ruleToString(kvp.Key, kvp.Value);
+			msg += "\n\n  AtomType '" + ToString(hi) + "' already has a " + Tname + " rule: '" + ruleToString(hi, dict[hi]) + "'.";
+			Logger.Log(msg);
+			throw new Exception("add" + TNAME + "Rule: Cannot add rule '" + ruleToString(hi, lo) + "'.");
+		}
+		else if (!flag)
+		{
+			dict.Add(hi, lo);
+		}
+	}
 
 	// private resources
 	private static IDetour hook_Sim_method_1832;
-
-	private static Dictionary<AtomType, AtomType> demoteDict = new();
+	private static Dictionary<AtomType, AtomType> rejectDict = new();
 	private static Dictionary<AtomType, Pair<AtomType, AtomType>> splitDict = new();
 	private static Dictionary<AtomType, Pair<AtomType, AtomType>> prolifDict = new();
 
@@ -284,30 +241,25 @@ public class MainClass : QuintessentialMod
 	public override void Load()	{ }
 	public override void LoadPuzzleContent()
 	{
-		//add rejection rules for vanilla metals
-		foreach (var atomtype in AtomTypes.field_1691)
-		{
-			if (atomtype.field_2297.method_1085())
-			{
-				addRejectionRule(atomtype.field_2297.method_1087(), atomtype);
-			}
-		}
+		//add rules for vanilla metals
+		addRejectionRule(goldAtomType(), silverAtomType());
+		addRejectionRule(silverAtomType(), copperAtomType());
+		addRejectionRule(copperAtomType(), ironAtomType());
+		addRejectionRule(ironAtomType(), tinAtomType());
+		addRejectionRule(tinAtomType(), leadAtomType());
 
-		//add splitting rules for vanilla metals
 		addSplittingRule(goldAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
 		addSplittingRule(silverAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
 		addSplittingRule(copperAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
 		addSplittingRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
 		addSplittingRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
 
-		//add proliferation rules for vanilla metals
 		addProliferationRule(goldAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), copperAtomType()));
 		addProliferationRule(silverAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), ironAtomType()));
 		addProliferationRule(copperAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
 		addProliferationRule(ironAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
 		addProliferationRule(tinAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
 		addProliferationRule(leadAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
-
 
 		//make glyphs
 		string path;
@@ -742,9 +694,7 @@ public class MainClass : QuintessentialMod
 							partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
 							addColliderAtHex(part, hexLeft);
 							addColliderAtHex(part, hexRight);
-
 						}
-						
 						if (applyProliferationRule(atomUp.field_2280, out prolifAtomTypePair))
 						{
 							fireProliferate(atomUp, atomDown);
@@ -806,7 +756,6 @@ public class MainClass : QuintessentialMod
 					}
 				}
 			}
-			
 		}
 		moleculeList.RemoveAll(Sim.class_301.field_2479 ?? (mol => mol.field_2638));
 		moleculeList.AddRange(source1);
@@ -835,6 +784,14 @@ public class MainClass : QuintessentialMod
 	public override void PostLoad()
 	{
 		On.PuzzleEditorScreen.method_50 += PES_Method_50;
+
+		//optional dependencies
+		if (QuintessentialLoader.CodeMods.Any(mod => mod.Meta.Name == "FTSIGCTU"))
+		{
+			FTSIGCTU.MirrorTool.addRule(glyphRejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
+			FTSIGCTU.MirrorTool.addRule(glyphSplitting, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+			FTSIGCTU.MirrorTool.addRule(glyphProliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
+		}
 	}
 
 	public void PES_Method_50(On.PuzzleEditorScreen.orig_method_50 orig, PuzzleEditorScreen pes_self, float param_4993)
