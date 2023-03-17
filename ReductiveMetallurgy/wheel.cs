@@ -40,7 +40,7 @@ public static class Wheel
 
 
 
-	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
+	//private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
 	private static AtomType leadAtomType() => AtomTypes.field_1681;
 	private static AtomType tinAtomType() => AtomTypes.field_1683;
 	private static AtomType ironAtomType() => AtomTypes.field_1684;
@@ -67,7 +67,7 @@ public static class Wheel
 
 		public bool tryProjection(HexRotation rot, bool run = true)
 		{
-			HexRotation netRot = rot + partSimState.field_2726;
+			HexRotation netRot = rot - partSimState.field_2726;
 			var index = (netRot.GetNumberOfTurns() % 6 + 6) % 6;
 			bool flag = wheel[index] < 5;
 			if (flag && run) wheel[index]++;
@@ -125,7 +125,7 @@ public static class Wheel
 
 
 
-	private static Vector2 hexGraphicalOffset(HexIndex hex) => MainClass.hexGraphicalOffset(hex);
+	//private static Vector2 hexGraphicalOffset(HexIndex hex) => MainClass.hexGraphicalOffset(hex);
 
 
 
@@ -137,6 +137,9 @@ public static class Wheel
 
 		//string path;
 		//path = "reductiveMetallurgy/textures/parts/icons/";
+
+		string path;
+		path = "reductiveMetallurgy/textures/parts/icons/";
 
 		Texture blankTexture = class_238.field_1989.field_71;
 
@@ -171,8 +174,8 @@ public static class Wheel
 				{new HexIndex(-1, 0), emptyAtom},
 				{new HexIndex(-1, 1), emptyAtom},
 			},
-			/*Icon*/field_1547 = class_238.field_1989.field_90.field_245.field_335, // berlo //////////////////////////////////////////// replace later
-			/*Hover Icon*/field_1548 = class_238.field_1989.field_90.field_245.field_336, // berlo ////////////////////////////////////// replace later
+			/*Icon*/field_1547 = class_235.method_615(path + "verrin"),
+			/*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
 			/*Permissions*/field_1551 = Permissions.None,
 			/*Only One Allowed?*/field_1552 = true,
 		};
