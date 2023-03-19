@@ -133,7 +133,8 @@ public class MainClass : QuintessentialMod
 		}
 
 
-		void findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot, out bool successFlag) { //////////// this should probably be moved to wheel.cs at some point
+		void findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot, out bool successFlag) {
+			//////////// this should probably be moved to wheel.cs at some point
 			// based somewhat on method_1850
 
 			var dict = new Dictionary<HexIndex, HexRotation>()
@@ -145,7 +146,7 @@ public class MainClass : QuintessentialMod
 					{new HexIndex(0, -1), HexRotation.R240},
 					{new HexIndex(1, -1), HexRotation.R300},
 				};
-			bool actionIsPossible(Wheel.MetalWheel metalWheel, HexRotation rot) => checkProjection ? metalWheel.tryProjection(rot, false) : metalWheel.tryRejection(rot, false);
+			bool actionIsPossible(Wheel.MetalWheel metalWheel, HexRotation rot) => checkProjection ? metalWheel.canProject(rot) : metalWheel.canReject(rot);
 
 			foreach (var wheel in wheelList)
 			{
@@ -199,16 +200,14 @@ public class MainClass : QuintessentialMod
 					//glyph-flash animation
 					Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexProject.Rotated(part.method_1163()));
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
-					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
-					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
+					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, part.method_1163().ToRadians()));
 					// delete the input atom
 					atomInput.field_2277.method_1107(atomInput.field_2278);
 					// draw input getting consumed
 					SEB.field_3937.Add(new class_286(SEB, atomInput.field_2278, atomInput.field_2280));
 					// take care of outputs
 					var metalWheel = new Wheel.MetalWheel(partSimStates[ravariWheel]);
-					metalWheel.tryProjection(rot);
-					//          draw projection animation
+					metalWheel.project(rot);
 				}
 			}
 			else if (partType == Glyphs.Rejection)
@@ -240,8 +239,7 @@ public class MainClass : QuintessentialMod
 					else // ravari
 					{
 						var metalWheel = new Wheel.MetalWheel(partSimStates[ravariWheel]);
-						metalWheel.tryRejection(rot);
-						//          draw projection animation
+						metalWheel.reject(rot);
 					}
 					//glyph-flash animation
 					Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexReject.Rotated(part.method_1163()));
