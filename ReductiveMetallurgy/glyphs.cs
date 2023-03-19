@@ -391,13 +391,8 @@ public static class Glyphs
 		});
 	}
 
-
-	private static bool mirrorRulesLoaded = false;
 	public static void LoadMirrorRules()
 	{
-		if (mirrorRulesLoaded) return;
-		mirrorRulesLoaded = true;
-
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Splitting, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
 		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);

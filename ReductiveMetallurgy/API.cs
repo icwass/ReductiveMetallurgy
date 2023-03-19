@@ -21,9 +21,7 @@ public static class API
 	public static Permissions perm_rejection = (Permissions)524288; // 0x00080000
 	public static Permissions perm_splitting = (Permissions)1048576; // 0x00100000
 	public static Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
-
-	//public static Permissions perm_ravari = (Permissions)536870912; // 0x20000000
-	//public static Permissions perm_daas = (Permissions)1073741824; // 0x40000000
+	public static Permissions perm_ravari = (Permissions)536870912; // 0x20000000
 
 	#region unused_permissions
 	//public static Permissions unused = (Permissions)16; // 0x00000010
@@ -33,6 +31,7 @@ public static class API
 
 	//public static Permissions unused = (Permissions)134217728; // 0x08000000
 
+	//public static Permissions perm_daas = (Permissions)1073741824; // 0x40000000
 	//public static Permissions unused = (Permissions)2147483648; // 0x80000000
 	#endregion
 
@@ -55,7 +54,8 @@ public static class API
 
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), "Rejection", API.perm_rejection);
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0.5f, -1), "Splitting", API.perm_splitting);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Proliferation", API.perm_proliferation);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Ravari", API.perm_ravari);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3.5f, -1), "Proliferation", API.perm_proliferation);
 	}
 
 

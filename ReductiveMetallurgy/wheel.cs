@@ -38,8 +38,6 @@ public static class Wheel
 		}
 	}
 
-
-
 	//private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
 	private static AtomType leadAtomType() => AtomTypes.field_1681;
 	private static AtomType tinAtomType() => AtomTypes.field_1683;
@@ -48,7 +46,6 @@ public static class Wheel
 	private static AtomType silverAtomType() => AtomTypes.field_1685;
 	private static AtomType goldAtomType() => AtomTypes.field_1686;
 
-	
 	public struct MetalWheel
 	{
 		//data
@@ -97,13 +94,11 @@ public static class Wheel
 			savePackedWheel();
 		}
 
-		public void getDrawData(out HexIndex[] Hexes, out AtomType[] Atoms, out bool[] Projections, out bool[] Rejections)
+		public void getDrawData(out HexIndex[] Hexes, out int[] Atoms, out bool[] Projections, out bool[] Rejections)
 		{
-			var metals = new AtomType[6] { leadAtomType(), tinAtomType(), ironAtomType(), copperAtomType(), silverAtomType(), goldAtomType() };
-
-			Atoms = new AtomType[6] { metals[wheel[0]], metals[wheel[1]], metals[wheel[2]], metals[wheel[3]], metals[wheel[4]], metals[wheel[5]] };
-			Projections = projections;
-			Rejections = rejections;
+			Atoms = new int[6] { wheel[0], wheel[1], wheel[2], wheel[3], wheel[4], wheel[5] };
+			Projections = new bool[6] { projections[0], projections[1], projections[2], projections[3], projections[4], projections[5] };
+			Rejections = new bool[6] { rejections[0], rejections[1], rejections[2], rejections[3], rejections[4], rejections[5] };
 			Hexes = hexes;
 		}
 		public MetalWheel(PartSimState _partSimState)
@@ -169,12 +164,12 @@ public static class Wheel
 			for (int i = 0; i < 6; i++)
 			{
 				packedWheel = packedWheel << 1;
-				packedWheel += rejections[i] ? 0 : 1;
+				packedWheel += rejections[i] ? 1 : 0;
 			}
 			for (int i = 0; i < 6; i++)
 			{
 				packedWheel = packedWheel << 1;
-				packedWheel += projections[i] ? 0 : 1;
+				packedWheel += projections[i] ? 1 : 0;
 			}
 			for (int i = 0; i < 6; i++)
 			{
@@ -232,7 +227,7 @@ public static class Wheel
 			},
 			/*Icon*/field_1547 = class_235.method_615(path + "verrin"),
 			/*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
-			/*Permissions*/field_1551 = Permissions.None,
+			/*Permissions*/field_1551 = API.perm_ravari,
 			/*Only One Allowed?*/field_1552 = true,
 		};
 
@@ -247,6 +242,7 @@ public static class Wheel
 			class_236 class236 = editor.method_1989(part, pos);
 
 			PartSimState partSimState = editor.method_507().method_481(part);
+			var simTime = editor.method_504();
 
 			var sebType = typeof(SolutionEditorBase);
 			MethodInfo Method_2003 = sebType.GetMethod("method_2003", BindingFlags.NonPublic | BindingFlags.Static);
@@ -260,50 +256,49 @@ public static class Wheel
 			MetalWheel metalWheel = new MetalWheel(partSimState);
 
 			HexIndex[] hexes;
-			AtomType[] atoms;
+			int[] atoms;
 			bool[] projections;
 			bool[] rejections;
 			metalWheel.getDrawData(out hexes, out atoms, out projections, out rejections);
+
+			Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
+
+			int frameIndex = class_162.method_404((int) (simTime * projectAtomAnimation.Length), 0, projectAtomAnimation.Length);
+
+
 			for (int i = 0; i < 6; i++)
 			{
 				Vector2 vector2 = renderer.field_1797 + class_187.field_1742.method_492(hexes[i]).Rotated(renderer.field_1798);
-				float num = (Editor.method_922() - vector2).Angle();
+				float num1 = (Editor.method_922() - vector2).Angle() - 1.570796f;
 
-				//draw new atom
-				Editor.method_927(atoms[i], vector2, 1f, 1f, 1f, 1f, -21f, num - 1.570796f, null, null, false);
+				var metals = new AtomType[6] { leadAtomType(), tinAtomType(), ironAtomType(), copperAtomType(), silverAtomType(), goldAtomType() };
+				AtomType atomType = metals[atoms[i]];
+
+				if (frameIndex < projectAtomAnimation.Length && (projections[i] || rejections[i]))
+				{
+					AtomType oldType = projections[i] ? metals[Math.Max(0, atoms[i] - 1)] : metals[Math.Min(0, atoms[i] + 1)];
+					Texture animationFrame = projectAtomAnimation[frameIndex];
+					Editor.method_927(frameIndex < 7 ? oldType : atomType, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
+					class_135.method_272(animationFrame, vector2 - animationFrame.method_690());
+				}
+				else
+				{
+					Editor.method_927(atomType, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
+				}
 			}
 
 			//draw cages
-			for (int index = 0; index < 6; ++index)
+			for (int i = 0; i < 6; ++i)
 			{
-				float num4 = index * 60 * (float)Math.PI / 180f;
+				float num4 = i * 60 * (float)Math.PI / 180f;
 				float radians = renderer.field_1798 + num4;
 				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
 				Method_2003.Invoke(editor, new object[] { atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
 			}
 		});
-
-
-
-
-
-
-
-
 	}
-
-
-	private static bool mirrorRulesLoaded = false;
 	public static void LoadMirrorRules()
 	{
-		if (mirrorRulesLoaded) return;
-		mirrorRulesLoaded = true;
-
 		FTSIGCTU.MirrorTool.addRule(Ravari, FTSIGCTU.MirrorTool.mirrorVanBerlo);
 	}
-
-
-
-
-
 }

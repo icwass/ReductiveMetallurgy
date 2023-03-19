@@ -23,6 +23,7 @@ public class MainClass : QuintessentialMod
 
 
 	// private resources
+	private static IDetour hook_Sim_method_1828;
 	private static IDetour hook_Sim_method_1832;
 
 	// private helper functions
@@ -58,19 +59,40 @@ public class MainClass : QuintessentialMod
 		Wheel.LoadContent();
 
 		//------------------------- HOOKING -------------------------//
+		hook_Sim_method_1828 = new Hook(
+		typeof(Sim).GetMethod("method_1828", BindingFlags.Instance | BindingFlags.NonPublic),
+		typeof(MainClass).GetMethod("OnSimMethod1828", BindingFlags.Static | BindingFlags.NonPublic)
+		);
 		hook_Sim_method_1832 = new Hook(
 		typeof(Sim).GetMethod("method_1832", BindingFlags.Instance | BindingFlags.NonPublic),
 		typeof(MainClass).GetMethod("OnSimMethod1832", BindingFlags.Static | BindingFlags.NonPublic)
 		);
 	}
 
+	private delegate void orig_Sim_method_1828(Sim self);
 	private delegate void orig_Sim_method_1832(Sim self, bool param_5369);
+	private static void OnSimMethod1828(orig_Sim_method_1828 orig, Sim sim_self)
+	{
+		My_Method_1828(sim_self);
+		orig(sim_self);
+	}
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool param_5369)
 	{
 		My_Method_1832(sim_self, param_5369);
 		orig(sim_self, param_5369);
 	}
-	public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
+	public static void My_Method_1828(Sim sim_self)
+	{
+		var sim_dyn = new DynamicData(sim_self);
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
+		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == Wheel.Ravari))
+		{
+			var partSimState = kvp.Value;
+			Wheel.MetalWheel metalWheel = new Wheel.MetalWheel(partSimState);
+			metalWheel.clearProjectionsAndRejections();
+		}
+	}
+		public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
 	{
 		//----- BOILERPLATE-1 START -----//
 		var sim_dyn = new DynamicData(sim_self);
@@ -414,6 +436,7 @@ public class MainClass : QuintessentialMod
 	public override void Unload()
 	{
 		hook_Sim_method_1832.Dispose();
+		hook_Sim_method_1828.Dispose();
 	}
 
 	//------------------------- END HOOKING -------------------------//
@@ -425,7 +448,13 @@ public class MainClass : QuintessentialMod
 		//optional dependencies
 		if (QuintessentialLoader.CodeMods.Any(mod => mod.Meta.Name == "FTSIGCTU"))
 		{
+			Logger.Log("[ReductiveMetallurgy] Detected optional dependency 'FTSIGCTU' - will add mirror rules for parts.");
 			Glyphs.LoadMirrorRules();
+			Wheel.LoadMirrorRules();
+		}
+		else
+		{
+			Logger.Log("[ReductiveMetallurgy] Did not detect optional dependency 'FTSIGCTU'.");
 		}
 	}
 
