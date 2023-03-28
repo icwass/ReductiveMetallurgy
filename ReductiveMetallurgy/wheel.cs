@@ -18,7 +18,7 @@ using Texture = class_256;
 
 public static class Wheel
 {
-	public static PartType Ravari;
+	public static PartType Ravari, RavariSpent;
 
 	public static void drawGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
@@ -38,6 +38,33 @@ public static class Wheel
 		}
 	}
 
+	public static void manageSpentRavaris(Sim sim_self, Action action)
+	{
+		var sim_dyn = new DynamicData(sim_self);
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+		var solution = SEB.method_502();
+		var partList = solution.field_3919;
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
+
+		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
+		{
+			var metalWheel = new MetalWheel(partSimStates[ravari]);
+			if (metalWheel.isSpent)
+			{
+				var ravari_dyn = new DynamicData(ravari);
+				ravari_dyn.Set("field_2691", RavariSpent);
+			}
+		}
+		//=====//
+		action();
+		//=====//
+		foreach (var ravari in partList.Where(x => x.method_1159() == RavariSpent))
+		{
+			var ravari_dyn = new DynamicData(ravari);
+			ravari_dyn.Set("field_2691", Ravari);
+		}
+	}
+
 	//private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
 	private static AtomType leadAtomType() => AtomTypes.field_1681;
 	private static AtomType tinAtomType() => AtomTypes.field_1683;
@@ -49,6 +76,7 @@ public static class Wheel
 	public struct MetalWheel
 	{
 		// APIs ////////////////////
+		public bool isSpent => spent;
 		public bool canProject(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, onlyCheck);
 		public bool canReject(HexRotation rot) => tryProjectionOrRejection(rot, isRejection, onlyCheck);
 		public void project(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, modifyData);
@@ -59,10 +87,43 @@ public static class Wheel
 			rejections = new bool[6] { false, false, false, false, false, false };
 			savePackedWheel();
 		}
-		public void spendWheel()
+		public void spendWheel(Sim sim_self)
 		{
+			if (spent) return;
+			var sim_dyn = new DynamicData(sim_self);
+			var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+			var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
+
+
+			int turns = partSimState.field_2726.GetNumberOfTurns() % 6;
+			for (int i = 0; i < 6; i++)
+			{
+				var hex = hexes[i];
+				var metal = metalIDs[wheel[(i - turns + 6) % 6]];
+				//spawnAtomAtHex
+				Molecule molecule = new Molecule();
+				molecule.method_1105(new Atom(metal), partSimState.field_2724 + hex);
+				moleculeList.Add(molecule);
+			}
 			spent = true;
 			savePackedWheel();
+
+			Sound unbondingActivate = class_238.field_1991.field_1849;
+			Sound simulationStop = class_238.field_1991.field_1863;
+			//MainClass.playSound(sim_self, unbondingActivate);
+			simulationStop.method_28(0.75f);
+			unbondingActivate.method_28(2f);
+			//draw separation animations
+			Texture[] unbondingAnimation = class_238.field_1989.field_83.field_154; // or class_238.field_1989.field_83.field_156
+			foreach (var hex in hexes)
+			{
+				var hex1 = partSimState.field_2724;
+				var hex2 = hex1 + hex;
+				Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hex1), class_187.field_1742.method_492(hex2), 0.62f);
+				var vector2_5 = class_187.field_1742.method_492(hex2 - hex1);
+				class_228 class228 = new class_228(SEB, (enum_7)1, vector2_6, unbondingAnimation, 75f, new Vector2(1.5f, -5f), vector2_5.Angle());
+				SEB.field_3935.Add(class228);
+			}
 		}
 		public void getDrawData(out HexIndex[] Hexes, out Dictionary<HexIndex, AtomType> BaseAtoms, out Dictionary<HexIndex, AtomType> TransmutationAtoms, out bool isSpent)
 		{
@@ -249,6 +310,21 @@ public static class Wheel
 			/*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
 			/*Permissions*/field_1551 = API.perm_ravari,
 			/*Only One Allowed?*/field_1552 = true,
+		};
+
+		RavariSpent = new PartType()
+		{
+			//*ID*/field_1528 = "wheel-verrin-spent",
+			//*Name*/field_1529 = class_134.method_253("Ravari's Wheel, Spent", string.Empty),
+			//*Desc*/field_1530 = class_134.method_253("This wheel used to have metal atoms. Alas, they are gone.", string.Empty),
+			//*Cost*/field_1531 = 30,
+			/*Type*/field_1532 = (enum_2) 1,
+			/*Programmable?*/field_1533 = true,
+			//*Force-rotatable*/field_1536 = true,
+			//*Icon*/field_1547 = class_235.method_615(path + "verrin"),
+			//*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
+			//*Permissions*/field_1551 = API.perm_ravari,
+			//*Only One Allowed?*/field_1552 = true,
 		};
 
 		var berlo = PartTypes.field_1771;

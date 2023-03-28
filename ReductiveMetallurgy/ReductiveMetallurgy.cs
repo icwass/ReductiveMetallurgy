@@ -10,8 +10,8 @@ using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
-using PartType = class_139;
-using Permissions = enum_149;
+//using PartType = class_139;
+//using Permissions = enum_149;
 using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
@@ -24,7 +24,10 @@ public class MainClass : QuintessentialMod
 
 	// private resources
 	private static IDetour hook_Sim_method_1828;
+	private static IDetour hook_Sim_method_1829;
 	private static IDetour hook_Sim_method_1832;
+	private static IDetour hook_Sim_method_1835;
+	private static IDetour hook_Sim_method_1836;
 
 	// private helper functions
 	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
@@ -63,23 +66,59 @@ public class MainClass : QuintessentialMod
 		typeof(Sim).GetMethod("method_1828", BindingFlags.Instance | BindingFlags.NonPublic),
 		typeof(MainClass).GetMethod("OnSimMethod1828", BindingFlags.Static | BindingFlags.NonPublic)
 		);
+		hook_Sim_method_1829 = new Hook(
+		typeof(Sim).GetMethod("method_1829", BindingFlags.Instance | BindingFlags.NonPublic),
+		typeof(MainClass).GetMethod("OnSimMethod1829", BindingFlags.Static | BindingFlags.NonPublic)
+		);
 		hook_Sim_method_1832 = new Hook(
 		typeof(Sim).GetMethod("method_1832", BindingFlags.Instance | BindingFlags.NonPublic),
 		typeof(MainClass).GetMethod("OnSimMethod1832", BindingFlags.Static | BindingFlags.NonPublic)
 		);
+		hook_Sim_method_1835 = new Hook(
+		typeof(Sim).GetMethod("method_1835", BindingFlags.Instance | BindingFlags.NonPublic),
+		typeof(MainClass).GetMethod("OnSimMethod1835", BindingFlags.Static | BindingFlags.NonPublic)
+		);
+		hook_Sim_method_1836 = new Hook(
+		typeof(Sim).GetMethod("method_1836", BindingFlags.Instance | BindingFlags.NonPublic),
+		typeof(MainClass).GetMethod("OnSimMethod1836", BindingFlags.Static | BindingFlags.NonPublic)
+		);
 	}
 
 	private delegate void orig_Sim_method_1828(Sim self);
+	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
 	private delegate void orig_Sim_method_1832(Sim self, bool param_5369);
+	private delegate void orig_Sim_method_1835(Sim self);
+	private delegate void orig_Sim_method_1836(Sim self);
 	private static void OnSimMethod1828(orig_Sim_method_1828 orig, Sim sim_self)
 	{
 		My_Method_1828(sim_self);
 		orig(sim_self);
 	}
+	private static void OnSimMethod1829(orig_Sim_method_1829 orig, Sim sim_self, enum_127 instructionType)
+	{
+		if (instructionType == (enum_127) 1) My_Method_1829(sim_self);
+		orig(sim_self, instructionType);
+	}
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool param_5369)
 	{
 		My_Method_1832(sim_self, param_5369);
-		orig(sim_self, param_5369);
+		Wheel.manageSpentRavaris(sim_self,
+			() => orig(sim_self, param_5369)
+		);
+	}
+	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self)
+	{
+		//spent Ravari wheels need to have different collision behavior
+		Wheel.manageSpentRavaris(sim_self,
+			() => orig(sim_self)
+		);
+	}
+	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self)
+	{
+		//spent Ravari wheels need to have different collision behavior
+		Wheel.manageSpentRavaris(sim_self,
+			() => orig(sim_self)
+		);
 	}
 	public static void My_Method_1828(Sim sim_self)
 	{
@@ -92,7 +131,29 @@ public class MainClass : QuintessentialMod
 			metalWheel.clearProjectionsAndRejections();
 		}
 	}
-		public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
+	public static void My_Method_1829(Sim sim_self)
+	{
+		var sim_dyn = new DynamicData(sim_self);
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+		var solution = SEB.method_502();
+		var partList = solution.field_3919;
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
+
+		var dropInstruction = class_169.field_1664;
+
+
+		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+		{
+			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
+			if (instructionType == dropInstruction)
+			{
+				var ravariState = partSimStates[ravari];
+				var metalWheel = new Wheel.MetalWheel(ravariState);
+				metalWheel.spendWheel(sim_self);
+			}
+		}
+	}
+	public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
 	{
 		//----- BOILERPLATE-1 START -----//
 		var sim_dyn = new DynamicData(sim_self);
@@ -154,7 +215,6 @@ public class MainClass : QuintessentialMod
 			ravariWheels.Add(ravariWheel);
 		}
 
-
 		void findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot, out bool successFlag) {
 			//////////// this should probably be moved to wheel.cs at some point
 			// based somewhat on method_1850
@@ -189,9 +249,6 @@ public class MainClass : QuintessentialMod
 			wheelResult = default(Part);
 			successFlag = false;
 		}
-
-
-
 
 		// fire the glyphs!
 		var GlyphProjection = PartTypes.field_1778;
@@ -435,8 +492,11 @@ public class MainClass : QuintessentialMod
 
 	public override void Unload()
 	{
-		hook_Sim_method_1832.Dispose();
 		hook_Sim_method_1828.Dispose();
+		hook_Sim_method_1829.Dispose();
+		hook_Sim_method_1832.Dispose();
+		hook_Sim_method_1835.Dispose();
+		hook_Sim_method_1836.Dispose();
 	}
 
 	//------------------------- END HOOKING -------------------------//
