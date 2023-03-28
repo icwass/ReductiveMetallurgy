@@ -11,7 +11,7 @@ using System.Reflection;
 namespace ReductiveMetallurgy;
 
 using PartType = class_139;
-using Permissions = enum_149;
+//using Permissions = enum_149;
 using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
@@ -48,41 +48,7 @@ public static class Wheel
 
 	public struct MetalWheel
 	{
-		//data
-		const bool isProjection = true;
-		const bool isRejection = false;
-		const bool modifyData = true;
-		const bool onlyCheck = false;
-		readonly HexIndex[] hexes = new HexIndex[6] {
-			new HexIndex(1, 0),
-			new HexIndex(0, 1),
-			new HexIndex(-1, 1),
-			new HexIndex(-1, 0),
-			new HexIndex(0, -1),
-			new HexIndex(1, -1)
-		};
-		const int header = 0b1 << 30;
-		//==== DATA LAYOUT ====//
-		// 32 bits total:
-		//___________________________________________________________________________________________________________________________________________
-		//| Header | Rejection bits                      | Projection bits                     |   (0)      (1)      (2)      (3)      (4)      (5)  |
-		//| [0][1] | [(0)],[(1)],[(2)],[(3)],[(4)],[(5)] | [(0)],[(1)],[(2)],[(3)],[(4)],[(5)] | [][][] , [][][] , [][][] , [][][] , [][][] , [][][] |
-		//|________|_____________________________________|_____________________________________|_____________________________________________________|
-		//
-		// (0) => R0
-		// (1) => R60
-		// (2) => R120
-		// (3) => R180
-		// (4) => R240
-		// (5) => R300
-		//
-
-		private int[] wheel;
-		private bool[] projections;
-		private bool[] rejections;
-		private PartSimState partSimState;
-
-		//APIs
+		// APIs ////////////////////
 		public bool canProject(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, onlyCheck);
 		public bool canReject(HexRotation rot) => tryProjectionOrRejection(rot, isRejection, onlyCheck);
 		public void project(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, modifyData);
@@ -93,67 +59,67 @@ public static class Wheel
 			rejections = new bool[6] { false, false, false, false, false, false };
 			savePackedWheel();
 		}
-
-		public void getDrawData(out HexIndex[] Hexes, out int[] Atoms, out bool[] Projections, out bool[] Rejections)
+		public void spendWheel()
 		{
-			Atoms = new int[6] { wheel[0], wheel[1], wheel[2], wheel[3], wheel[4], wheel[5] };
-			Projections = new bool[6] { projections[0], projections[1], projections[2], projections[3], projections[4], projections[5] };
-			Rejections = new bool[6] { rejections[0], rejections[1], rejections[2], rejections[3], rejections[4], rejections[5] };
+			spent = true;
+			savePackedWheel();
+		}
+		public void getDrawData(out HexIndex[] Hexes, out Dictionary<HexIndex, AtomType> BaseAtoms, out Dictionary<HexIndex, AtomType> TransmutationAtoms, out bool isSpent)
+		{
 			Hexes = hexes;
+			isSpent = spent;
+			BaseAtoms = new Dictionary<HexIndex, AtomType>();
+			TransmutationAtoms = new Dictionary<HexIndex, AtomType>();
+			if (spent) return;
+
+			Hexes = hexes;
+			for (int i = 0; i < 6; i++)
+			{
+				int metal = wheel[i];
+				BaseAtoms.Add(hexes[i], metalIDs[metal]);
+				if (projections[i]) metal--;
+				if (rejections[i]) metal++;
+				TransmutationAtoms.Add(hexes[i], metalIDs[metal]);
+			}
 		}
 		public MetalWheel(PartSimState _partSimState)
 		{
 			partSimState = _partSimState;
 			int packedWheel = partSimState.field_2730;
+			spent = packedWheel < 0;
 			// starting configuration
-			wheel = new int[6] { 1, 0, 5, 4, 3, 2 };
+			wheel = new int[6] { 2, 1, 6, 5, 4, 3 };
 			projections = new bool[6] { false, false, false, false, false, false };
 			rejections = new bool[6] { false, false, false, false, false, false };
-
-			if ((packedWheel & header) == header)
-			{
-				//
-				for (int i = 0; i < 6; i++)
-				{
-					wheel[5 - i] = Math.Min(packedWheel & 0b111, 5);
-					packedWheel >>= 3;
-				}
-				for (int i = 0; i < 6; i++)
-				{
-					projections[5 - i] = (packedWheel & 0b1) == 1;
-					packedWheel >>= 1;
-				}
-				for (int i = 0; i < 6; i++)
-				{
-					rejections[5 - i] = (packedWheel & 0b1) == 1;
-					packedWheel >>= 1;
-				}
-			}
-			else
+			if (packedWheel == 0) //save the starting configuration
 			{
 				savePackedWheel();
 			}
+			else // load the existing configuration
+			{
+				for (int i = 5; i >= 0; i--)
+				{
+					//
+					wheel[i] = packedWheel & metalMask;
+					projections[i] = (packedWheel & projectionMask) == projectionMask;
+					rejections[i] = (packedWheel & rejectionMask) == rejectionMask;
+					packedWheel >>= shift;
+				}
+			}
 		}
-		//internal
+
+		// internal ////////////////////
 		private bool tryProjectionOrRejection(HexRotation rot, bool isProjecting, bool isModifyingData)
 		{
+			if (spent) return false;
 			HexRotation netRot = rot - partSimState.field_2726;
 			var index = (netRot.GetNumberOfTurns() % 6 + 6) % 6;
-
-			bool flag = isProjecting ? wheel[index] < 5 : wheel[index] > 0;
-
+			bool flag = isProjecting ? wheel[index] < 6 : wheel[index] > 1;
 			if (flag && isModifyingData)
 			{
-				if (isProjecting)
-				{
-					wheel[index]++;
-					projections[index] = true;
-				}
-				else
-				{
-					wheel[index]--;
-					rejections[index] = true;
-				}
+				projections[index] = projections[index] || isProjecting;
+				rejections[index] = rejections[index] || !isProjecting;
+				wheel[index] += isProjecting ? 1 : -1;
 				savePackedWheel();
 			}
 			return flag;
@@ -161,23 +127,77 @@ public static class Wheel
 		private void savePackedWheel()
 		{
 			int packedWheel = 0;
-			for (int i = 0; i < 6; i++)
+			if (spent)
 			{
-				packedWheel = packedWheel << 1;
-				packedWheel += rejections[i] ? 1 : 0;
+				packedWheel = int.MinValue;
 			}
-			for (int i = 0; i < 6; i++)
+			else
 			{
-				packedWheel = packedWheel << 1;
-				packedWheel += projections[i] ? 1 : 0;
+				for (int i = 0; i < 6; i++)
+				{
+					packedWheel <<= shift;
+					if (rejections[i]) packedWheel += rejectionMask;
+					if (projections[i]) packedWheel += projectionMask;
+					packedWheel += wheel[i];
+				}
 			}
-			for (int i = 0; i < 6; i++)
-			{
-				packedWheel = packedWheel << 3;
-				packedWheel += wheel[i];
-			}
-			partSimState.field_2730 = packedWheel + header;
+			partSimState.field_2730 = packedWheel;
 		}
+
+		// data ////////////////////
+		private int[] wheel;
+		private bool[] projections;
+		private bool[] rejections;
+		private bool spent;
+		private PartSimState partSimState;
+
+		const bool isProjection = true;
+		const bool isRejection = false;
+		const bool modifyData = true;
+		const bool onlyCheck = false;
+		const int metalMask = 0b00111;
+		const int projectionMask = 0b01000;
+		const int rejectionMask = 0b10000;
+		const int shift = 5;
+		readonly static HexIndex[] hexes = new HexIndex[6] {
+			new HexIndex(1, 0),
+			new HexIndex(0, 1),
+			new HexIndex(-1, 1),
+			new HexIndex(-1, 0),
+			new HexIndex(0, -1),
+			new HexIndex(1, -1)
+		};
+		readonly static AtomType[] metalIDs = new AtomType[8] {
+			leadAtomType(), // for array safety
+			leadAtomType(),
+			tinAtomType(),
+			ironAtomType(),
+			copperAtomType(),
+			silverAtomType(),
+			goldAtomType(),
+			goldAtomType() // for array safety
+		};
+		//==== DATA LAYOUT ====//
+		// 32 bits total:
+		//_______________________________________________________________________________________
+		//| Header |   (0)          (1)          (2)          (3)          (4)          (5)      |
+		//|  [][]  | [][][][][] , [][][][][] , [][][][][] , [][][][][] , [][][][][] , [][][][][] |
+		//|________|_____________________________________________________________________________|
+		//
+		// Header Values:
+		// [0][X] : Wheel is normal
+		// [1][X] : Wheel is spent
+		//
+		// (0) => MetalInt at R0
+		// (1) => MetalInt at R60
+		// (2) => MetalInt at R120
+		// (3) => MetalInt at R180
+		// (4) => MetalInt at R240
+		// (5) => MetalInt at R300
+		//
+		// (x) MetalInt format:
+		// Rejection bit : Projection bit : Metal ID
+		//       []      :       []       :  [][][]
 	}
 
 	private static bool ContentLoaded = false;
@@ -236,6 +256,7 @@ public static class Wheel
 
 		// fetch vanilla textures
 		var atomCageLighting = class_238.field_1989.field_90.field_232;
+		var projectAtomAnimation = class_238.field_1989.field_81.field_614;
 
 		QApi.AddPartType(Ravari, (part, pos, editor, renderer) =>
 		{
@@ -252,48 +273,47 @@ public static class Wheel
 			var hexArmRotations = PartTypes.field_1767.field_1534;
 			Method_2005.Invoke(editor, new object[] { part.method_1165(), hexArmRotations, class236 });
 
-			//draw atoms
+			// draw arms and their contents, if any
+			int frameIndex = class_162.method_404((int)(simTime * projectAtomAnimation.Length), 0, projectAtomAnimation.Length);
 			MetalWheel metalWheel = new MetalWheel(partSimState);
-
 			HexIndex[] hexes;
-			int[] atoms;
-			bool[] projections;
-			bool[] rejections;
-			metalWheel.getDrawData(out hexes, out atoms, out projections, out rejections);
+			bool isSpent;
+			Dictionary<HexIndex, AtomType> baseAtoms;
+			Dictionary<HexIndex, AtomType> transmutationAtoms;
+			metalWheel.getDrawData(out hexes, out baseAtoms, out transmutationAtoms, out isSpent);
 
-			Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
-
-			int frameIndex = class_162.method_404((int) (simTime * projectAtomAnimation.Length), 0, projectAtomAnimation.Length);
-
-
-			for (int i = 0; i < 6; i++)
+			for (int i = 0; i < hexes.Length; i++)
 			{
-				Vector2 vector2 = renderer.field_1797 + class_187.field_1742.method_492(hexes[i]).Rotated(renderer.field_1798);
-				float num1 = (Editor.method_922() - vector2).Angle() - 1.570796f;
+				var hex = hexes[i];
 
-				var metals = new AtomType[6] { leadAtomType(), tinAtomType(), ironAtomType(), copperAtomType(), silverAtomType(), goldAtomType() };
-				AtomType atomType = metals[atoms[i]];
-
-				if (frameIndex < projectAtomAnimation.Length && (projections[i] || rejections[i]))
+				if (isSpent)
 				{
-					AtomType oldType = projections[i] ? metals[Math.Max(0, atoms[i] - 1)] : metals[Math.Min(0, atoms[i] + 1)];
-					Texture animationFrame = projectAtomAnimation[frameIndex];
-					Editor.method_927(frameIndex < 7 ? oldType : atomType, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
-					class_135.method_272(animationFrame, vector2 - animationFrame.method_690());
+					// add stuff to here later
 				}
 				else
 				{
-					Editor.method_927(atomType, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
-				}
-			}
+					//draw atom
+					AtomType baseAtom = baseAtoms[hex];
+					AtomType transmutationAtom = transmutationAtoms[hex];
 
-			//draw cages
-			for (int i = 0; i < 6; ++i)
-			{
-				float num4 = i * 60 * (float)Math.PI / 180f;
-				float radians = renderer.field_1798 + num4;
-				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
-				Method_2003.Invoke(editor, new object[] { atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
+					Vector2 vector2 = renderer.field_1797 + class_187.field_1742.method_492(hex).Rotated(renderer.field_1798);
+					float num1 = (Editor.method_922() - vector2).Angle() - 1.570796f;
+					if (frameIndex < projectAtomAnimation.Length && baseAtom != transmutationAtom)
+					{
+						Texture animationFrame = projectAtomAnimation[frameIndex];
+						Editor.method_927(frameIndex < 7 ? transmutationAtom : baseAtom, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
+						class_135.method_272(animationFrame, vector2 - animationFrame.method_690());
+					}
+					else
+					{
+						Editor.method_927(baseAtom, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
+					}
+					//draw cage
+					float num4 = i * 60 * (float)Math.PI / 180f;
+					float radians = renderer.field_1798 + num4;
+					Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
+					Method_2003.Invoke(editor, new object[] { atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
+				}
 			}
 		});
 	}
