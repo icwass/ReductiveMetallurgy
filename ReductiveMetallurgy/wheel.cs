@@ -93,7 +93,7 @@ public static class Wheel
 			var sim_dyn = new DynamicData(sim_self);
 			var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
 			var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
-
+			var conduitMoleculeList = sim_dyn.Get<List<Molecule>>("field_3828");
 
 			int turns = partSimState.field_2726.GetNumberOfTurns() % 6;
 			for (int i = 0; i < 6; i++)
@@ -104,6 +104,7 @@ public static class Wheel
 				Molecule molecule = new Molecule();
 				molecule.method_1105(new Atom(metal), partSimState.field_2724 + hex);
 				moleculeList.Add(molecule);
+				conduitMoleculeList.Add(molecule);
 			}
 			spent = true;
 			savePackedWheel();
@@ -111,8 +112,9 @@ public static class Wheel
 			Sound unbondingActivate = class_238.field_1991.field_1849;
 			Sound simulationStop = class_238.field_1991.field_1863;
 			//MainClass.playSound(sim_self, unbondingActivate);
-			simulationStop.method_28(0.75f);
-			unbondingActivate.method_28(2f);
+			float volumeFactor = SEB.method_506();
+			simulationStop.method_28(0.75f * volumeFactor);
+			unbondingActivate.method_28(2f * volumeFactor);
 			//draw separation animations
 			Texture[] unbondingAnimation = class_238.field_1989.field_83.field_154; // or class_238.field_1989.field_83.field_156
 			foreach (var hex in hexes)
