@@ -4,6 +4,7 @@ using Quintessential;
 using Quintessential.Settings;
 using SDL2;
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
@@ -19,6 +20,7 @@ using Texture = class_256;
 public static class Wheel
 {
 	public static PartType Ravari, RavariSpent;
+	public static Sound RavariSpend;
 
 	public static void drawGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
@@ -109,12 +111,11 @@ public static class Wheel
 			spent = true;
 			savePackedWheel();
 
-			Sound unbondingActivate = class_238.field_1991.field_1849;
 			Sound simulationStop = class_238.field_1991.field_1863;
-			//MainClass.playSound(sim_self, unbondingActivate);
 			float volumeFactor = SEB.method_506();
 			simulationStop.method_28(0.75f * volumeFactor);
-			unbondingActivate.method_28(2f * volumeFactor);
+			RavariSpend.method_28(1f * volumeFactor);
+
 			//draw separation animations
 			Texture[] unbondingAnimation = class_238.field_1989.field_83.field_154; // or class_238.field_1989.field_83.field_156
 			foreach (var hex in hexes)
@@ -269,14 +270,39 @@ public static class Wheel
 		if (ContentLoaded) return;
 		ContentLoaded = true;
 
-		//string path;
-		//path = "reductiveMetallurgy/textures/parts/icons/";
-
 		string path;
+		//=========================//
+		//load the sound, and hook into stuff to make it work right
+		path = "Content/reductiveMetallurgy/sounds/ravari_release.wav";
+		foreach (var dir in QuintessentialLoader.ModContentDirectories)
+		{
+			string filepath = Path.Combine(dir, path);
+			Logger.Log(filepath);
+			if (File.Exists(filepath))
+			{
+				RavariSpend = new Sound()
+				{
+					field_4060 = Path.GetFileNameWithoutExtension(filepath),
+					field_4061 = class_158.method_375(filepath)
+				};
+				break;
+			}
+		}
+		var field = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
+		var dictionary = (Dictionary<string,float>) field.GetValue(null);
+		dictionary.Add("ravari_release", 0.15f);
+
+		void Method_540(On.class_201.orig_method_540 orig, class_201 class201_self)
+		{
+			orig(class201_self);
+			RavariSpend.field_4062 = false;
+		}
+		On.class_201.method_540 += Method_540;
+		//=========================//
+
+
 		path = "reductiveMetallurgy/textures/parts/icons/";
-
 		Texture blankTexture = class_238.field_1989.field_71;
-
 		AtomType emptyAtom = new AtomType()
 		{
 			field_2284 = string.Empty, // non-local name
@@ -332,6 +358,15 @@ public static class Wheel
 		var berlo = PartTypes.field_1771;
 		QApi.AddPartTypeToPanel(Ravari, berlo);
 
+		path = "reductiveMetallurgy/textures/parts/atom_cage_broken.lighting/";
+
+		var atomCageBrokenLighting = new class_126(
+			class_235.method_615(path + "left"),
+			class_235.method_615(path + "right"),
+			class_235.method_615(path + "bottom"),
+			class_235.method_615(path + "top")
+		);
+
 		// fetch vanilla textures
 		var atomCageLighting = class_238.field_1989.field_90.field_232;
 		var projectAtomAnimation = class_238.field_1989.field_81.field_614;
@@ -364,11 +399,7 @@ public static class Wheel
 			{
 				var hex = hexes[i];
 
-				if (isSpent)
-				{
-					// add stuff to here later
-				}
-				else
+				if (!isSpent)
 				{
 					//draw atom
 					AtomType baseAtom = baseAtoms[hex];
@@ -386,12 +417,14 @@ public static class Wheel
 					{
 						Editor.method_927(baseAtom, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
 					}
-					//draw cage
-					float num4 = i * 60 * (float)Math.PI / 180f;
-					float radians = renderer.field_1798 + num4;
-					Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
-					Method_2003.Invoke(editor, new object[] { atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
 				}
+
+				//draw cage
+				float num4 = i * 60 * (float)Math.PI / 180f;
+				float radians = renderer.field_1798 + num4;
+				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
+				Method_2003.Invoke(editor, new object[] { isSpent ? atomCageBrokenLighting : atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
+
 			}
 		});
 	}
