@@ -18,10 +18,6 @@ using Texture = class_256;
 
 public class MainClass : QuintessentialMod
 {
-	// public resources, helper functions and APIs
-	//public static PartType wheelDaas;
-
-
 	// private resources
 	private static IDetour hook_Sim_method_1828;
 	private static IDetour hook_Sim_method_1829;
@@ -91,7 +87,15 @@ public class MainClass : QuintessentialMod
 	private delegate void orig_Sim_method_1836(Sim self);
 	private static void OnSimMethod1828(orig_Sim_method_1828 orig, Sim sim_self)
 	{
-		My_Method_1828(sim_self);
+		var sim_dyn = new DynamicData(sim_self);
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
+		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == Wheel.Ravari))
+		{
+			var partSimState = kvp.Value;
+			Wheel.MetalWheel metalWheel = new Wheel.MetalWheel(partSimState);
+			metalWheel.clearProjectionsAndRejections();
+		}
+
 		orig(sim_self);
 	}
 	private static void OnSimMethod1829(orig_Sim_method_1829 orig, Sim sim_self, enum_127 instructionType)
@@ -120,17 +124,6 @@ public class MainClass : QuintessentialMod
 			() => orig(sim_self)
 		);
 	}
-	public static void My_Method_1828(Sim sim_self)
-	{
-		var sim_dyn = new DynamicData(sim_self);
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == Wheel.Ravari))
-		{
-			var partSimState = kvp.Value;
-			Wheel.MetalWheel metalWheel = new Wheel.MetalWheel(partSimState);
-			metalWheel.clearProjectionsAndRejections();
-		}
-	}
 	public static void My_Method_1829(Sim sim_self)
 	{
 		var sim_dyn = new DynamicData(sim_self);
@@ -140,7 +133,6 @@ public class MainClass : QuintessentialMod
 		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
 
 		var dropInstruction = class_169.field_1664;
-
 
 		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
 		{
@@ -332,7 +324,7 @@ public class MainClass : QuintessentialMod
 					SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
 				}
 			}
-			else if (partType == Glyphs.Splitting)
+			else if (partType == Glyphs.Deposition)
 			{
 				HexIndex hexLeft = new HexIndex(0, 0);
 				HexIndex hexRight = new HexIndex(1, 0);
@@ -340,26 +332,26 @@ public class MainClass : QuintessentialMod
 
 				if (!glyphIsFiring(partSimState))
 				{
-					AtomReference atomSplit;
-					Pair<AtomType, AtomType> splitAtomTypePair;
+					AtomReference atomDeposit;
+					Pair<AtomType, AtomType> depositAtomTypePair;
 
 					if (isConsumptionHalfstep
 					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
 					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
-					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomSplit) // splittable atom exists
-					&& !atomSplit.field_2281 // a single atom
-					&& !atomSplit.field_2282 // not held by a gripper
-					&& API.applySplittingRule(atomSplit.field_2280, out splitAtomTypePair) // is splittable
+					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomDeposit) // depositable atom exists
+					&& !atomDeposit.field_2281 // a single atom
+					&& !atomDeposit.field_2282 // not held by a gripper
+					&& API.applyDepositionRule(atomDeposit.field_2280, out depositAtomTypePair) // is depositable
 					)
 					{
 						glyphNeedsToFire(partSimState);
 						playSound(sim_self, purificationActivate);
 						// delete the input atom
-						atomSplit.field_2277.method_1107(atomSplit.field_2278);
+						atomDeposit.field_2277.method_1107(atomDeposit.field_2278);
 						// draw input getting consumed
-						SEB.field_3937.Add(new class_286(SEB, atomSplit.field_2278, atomSplit.field_2280));
+						SEB.field_3937.Add(new class_286(SEB, atomDeposit.field_2278, atomDeposit.field_2280));
 						// take care of outputs
-						partSimState.field_2744 = new AtomType[2] { splitAtomTypePair.Left, splitAtomTypePair.Right };
+						partSimState.field_2744 = new AtomType[2] { depositAtomTypePair.Left, depositAtomTypePair.Right };
 						addColliderAtHex(part, hexLeft);
 						addColliderAtHex(part, hexRight);
 					}
@@ -484,9 +476,6 @@ public class MainClass : QuintessentialMod
 			partSimState.field_2729 = sim_self.method_1848(field2724);
 		}
 
-		//sim_dyn.Set("field_3821", partSimStates);
-		//sim_dyn.Set("field_3826", struct122List);
-		//sim_dyn.Set("field_3823", moleculeList);
 		//----- BOILERPLATE-2 END -----//
 	}
 
@@ -508,7 +497,7 @@ public class MainClass : QuintessentialMod
 		//optional dependencies
 		if (QuintessentialLoader.CodeMods.Any(mod => mod.Meta.Name == "FTSIGCTU"))
 		{
-			Logger.Log("[ReductiveMetallurgy] Detected optional dependency 'FTSIGCTU' - will add mirror rules for parts.");
+			Logger.Log("[ReductiveMetallurgy] Detected optional dependency 'FTSIGCTU' - adding mirror rules for parts.");
 			Glyphs.LoadMirrorRules();
 			Wheel.LoadMirrorRules();
 		}

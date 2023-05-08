@@ -19,7 +19,7 @@ using Texture = class_256;
 public static class API
 {
 	public static Permissions perm_rejection = (Permissions)524288; // 0x00080000
-	public static Permissions perm_splitting = (Permissions)1048576; // 0x00100000
+	public static Permissions perm_deposition = (Permissions)1048576; // 0x00100000
 	public static Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
 	public static Permissions perm_ravari = (Permissions)536870912; // 0x20000000
 
@@ -53,7 +53,7 @@ public static class API
 		Vector2 offset(float x, float y) => new Vector2(236f * x, -37f * y);
 
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), "Rejection", API.perm_rejection);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0.5f, -1), "Splitting", API.perm_splitting);
+		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0.5f, -1), "Deposition", API.perm_deposition);
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Ravari", API.perm_ravari);
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3.5f, -1), "Proliferation", API.perm_proliferation);
 	}
@@ -70,14 +70,14 @@ public static class API
 	private static AtomType goldAtomType() => AtomTypes.field_1686;
 
 	private static Dictionary<AtomType, AtomType> rejectDict = new();
-	private static Dictionary<AtomType, Pair<AtomType, AtomType>> splitDict = new();
+	private static Dictionary<AtomType, Pair<AtomType, AtomType>> depositDict = new();
 	private static Dictionary<AtomType, Pair<AtomType, AtomType>> prolifDict = new();
 
 	public static bool applyRejectionRule(AtomType hi, out AtomType lo) => applyTRule(hi, rejectDict, out lo);
-	public static bool applySplittingRule(AtomType hi, out Pair<AtomType, AtomType> lo) => applyTRule(hi, splitDict, out lo);
+	public static bool applyDepositionRule(AtomType hi, out Pair<AtomType, AtomType> lo) => applyTRule(hi, depositDict, out lo);
 	public static bool applyProliferationRule(AtomType hi, out Pair<AtomType, AtomType> lo) => applyTRule(hi, prolifDict, out lo);
 	public static void addRejectionRule(AtomType hi, AtomType lo) => addTRule("rejection", hi, lo, rejectDict, new List<AtomType> { quicksilverAtomType(), leadAtomType() });
-	public static void addSplittingRule(AtomType hi, Pair<AtomType, AtomType> lo) => addTRule("splitting", hi, lo, splitDict, new List<AtomType> { quicksilverAtomType(), leadAtomType() });
+	public static void addDepositionRule(AtomType hi, Pair<AtomType, AtomType> lo) => addTRule("deposition", hi, lo, depositDict, new List<AtomType> { quicksilverAtomType(), leadAtomType() });
 	public static void addProliferationRule(AtomType hi, Pair<AtomType, AtomType> lo) => addTRule("proliferation", hi, lo, prolifDict, new List<AtomType> { quicksilverAtomType() });
 
 	//rule-dictionary generics

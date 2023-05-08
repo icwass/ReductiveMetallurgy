@@ -18,7 +18,7 @@ using Texture = class_256;
 
 public static class Glyphs
 {
-	public static PartType Rejection, Splitting, Proliferation;
+	public static PartType Rejection, Deposition, Proliferation;
 
 
 
@@ -133,18 +133,18 @@ public static class Glyphs
 		API.addRejectionRule(ironAtomType(), tinAtomType());
 		API.addRejectionRule(tinAtomType(), leadAtomType());
 
-		API.addSplittingRule(goldAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
-		API.addSplittingRule(silverAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
-		API.addSplittingRule(copperAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
-		API.addSplittingRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
-		API.addSplittingRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
+		API.addDepositionRule(goldAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
+		API.addDepositionRule(silverAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
+		API.addDepositionRule(copperAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
+		API.addDepositionRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
+		API.addDepositionRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
 
-		API.addProliferationRule(goldAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), copperAtomType()));
-		API.addProliferationRule(silverAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), ironAtomType()));
-		API.addProliferationRule(copperAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
+		API.addProliferationRule(goldAtomType(), new Pair<AtomType, AtomType>(goldAtomType(), ironAtomType()));
+		API.addProliferationRule(silverAtomType(), new Pair<AtomType, AtomType>(silverAtomType(), ironAtomType()));
+		API.addProliferationRule(copperAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), tinAtomType()));
 		API.addProliferationRule(ironAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
-		API.addProliferationRule(tinAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
-		API.addProliferationRule(leadAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
+		API.addProliferationRule(tinAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
+		API.addProliferationRule(leadAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
 
 		string path;
 		path = "reductiveMetallurgy/textures/parts/icons/";
@@ -160,13 +160,13 @@ public static class Glyphs
 			class_238.field_1989.field_97.field_375 // double_stroke
 		);
 
-		Splitting = makeGlyph(
-			"glyph-splitting",
-			"Glyph of Splitting",
-			"The glyph of splitting can separate an atom of metal into two atoms of lower form.",
-			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_splitting,
-			class_235.method_615(path + "splitting"),
-			class_235.method_615(path + "splitting_hover"),
+		Deposition = makeGlyph(
+			"glyph-deposition",
+			"Glyph of Deposition",
+			"The glyph of deposition can separate an atom of metal into two atoms of lower form.",
+			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_deposition,
+			class_235.method_615(path + "deposition"),
+			class_235.method_615(path + "deposition_hover"),
 			class_238.field_1989.field_97.field_386,// triple_glow
 			class_238.field_1989.field_97.field_387 // triple_stroke
 		);
@@ -175,17 +175,18 @@ public static class Glyphs
 			"glyph-proliferation",
 			"Glyph of proliferation",
 			"The glyph of proliferation consumes quicksilver and an atom of metal to generate two atoms of lower form.",
-			50, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, API.perm_proliferation,
+			40, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, API.perm_proliferation,
 			class_235.method_615(path + "proliferation"),
 			class_235.method_615(path + "proliferation_hover"),
 			class_238.field_1989.field_97.field_368,// diamond_glow
-			class_238.field_1989.field_97.field_369 // diamond_stroke
+			class_238.field_1989.field_97.field_369, // diamond_stroke
+			true // only one!
 		);
 
 		var projector = PartTypes.field_1778;
 		var purifier = PartTypes.field_1779;
 		QApi.AddPartTypeToPanel(Rejection, projector);
-		QApi.AddPartTypeToPanel(Splitting, purifier);
+		QApi.AddPartTypeToPanel(Deposition, purifier);
 		QApi.AddPartTypeToPanel(Proliferation, purifier);
 
 
@@ -260,7 +261,7 @@ public static class Glyphs
 			drawPartGloss(renderer, purificationGlyph_gloss, projectionGlyph_glossMask, base_offset);
 		});
 
-		QApi.AddPartType(Splitting, (part, pos, editor, renderer) =>
+		QApi.AddPartType(Deposition, (part, pos, editor, renderer) =>
 		{
 			PartSimState partSimState = editor.method_507().method_481(part);
 			var simTime = editor.method_504();
@@ -394,12 +395,7 @@ public static class Glyphs
 	public static void LoadMirrorRules()
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(Splitting, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
 		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 	}
-
-
-
-
-
 }
