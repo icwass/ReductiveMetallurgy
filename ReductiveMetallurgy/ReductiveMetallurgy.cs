@@ -25,6 +25,21 @@ public class MainClass : QuintessentialMod
 	private static IDetour hook_Sim_method_1835;
 	private static IDetour hook_Sim_method_1836;
 
+	public static bool RavariAlternateTexture = false;
+	public override Type SettingsType => typeof(MySettings);
+	public class MySettings
+	{
+		[SettingsLabel("Use an alternate texture for Ravari's Wheel.")]
+		public bool RavariAlternateTexture = false;
+	}
+	public override void ApplySettings()
+	{
+		base.ApplySettings();
+
+		var SET = (MySettings)Settings;
+		RavariAlternateTexture = SET.RavariAlternateTexture;
+	}
+
 	// private helper functions
 	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
 
@@ -51,7 +66,10 @@ public class MainClass : QuintessentialMod
 
 
 	// public main functions
-	public override void Load()	{ }
+	public override void Load()
+	{
+		Settings = new MySettings();
+	}
 	public override void LoadPuzzleContent()
 	{
 		Glyphs.LoadContent();

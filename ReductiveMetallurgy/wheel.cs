@@ -21,6 +21,8 @@ public static class Wheel
 {
 	public static PartType Ravari, RavariSpent;
 	public static Sound RavariSpend;
+	public static Texture[] RavariSeparateAnimation;
+	public static Texture[] RavariFlyAnimation;
 
 	public static void drawGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
@@ -117,15 +119,18 @@ public static class Wheel
 			RavariSpend.method_28(1f * volumeFactor);
 
 			//draw separation animations
-			Texture[] unbondingAnimation = class_238.field_1989.field_83.field_154; // or class_238.field_1989.field_83.field_156
 			foreach (var hex in hexes)
 			{
 				var hex1 = partSimState.field_2724;
 				var hex2 = hex1 + hex;
-				Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hex1), class_187.field_1742.method_492(hex2), 0.62f);
+				var hex2_pos = class_187.field_1742.method_492(hex2);
+				Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hex1), hex2_pos, 0.67f);
+				float angle = class_187.field_1742.method_492(hex2 - hex1).Angle();
 				var vector2_5 = class_187.field_1742.method_492(hex2 - hex1);
-				class_228 class228 = new class_228(SEB, (enum_7)1, vector2_6, unbondingAnimation, 75f, new Vector2(1.5f, -5f), vector2_5.Angle());
-				SEB.field_3935.Add(class228);
+				class_228 class228_1 = new class_228(SEB, (enum_7)1, hex2_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle);
+				SEB.field_3936.Add(class228_1);
+				class_228 class228_2 = new class_228(SEB, (enum_7)1, vector2_6, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle);
+				SEB.field_3936.Add(class228_2);
 			}
 		}
 		public void getDrawData(out HexIndex[] Hexes, out Dictionary<HexIndex, AtomType> BaseAtoms, out Dictionary<HexIndex, AtomType> TransmutationAtoms, out bool isSpent)
@@ -301,7 +306,6 @@ public static class Wheel
 		//=========================//
 
 
-		path = "reductiveMetallurgy/textures/parts/icons/";
 		Texture blankTexture = class_238.field_1989.field_71;
 		AtomType emptyAtom = new AtomType()
 		{
@@ -316,6 +320,21 @@ public static class Wheel
 			}
 		};
 
+		RavariSeparateAnimation = new Texture[28];
+		path = "reductiveMetallurgy/textures/parts/ravari_separate.array/separate_";
+		for (int i = 0; i < RavariSeparateAnimation.Length; i++)
+		{
+			RavariSeparateAnimation[i] = class_235.method_615(path + (i+1).ToString("0000"));
+		}
+
+		RavariFlyAnimation = new Texture[32];
+		path = "reductiveMetallurgy/textures/parts/atom_cage_fly.array/fly_";
+		for (int i = 0; i < RavariFlyAnimation.Length; i++)
+		{
+			RavariFlyAnimation[i] = class_235.method_615(path + (i+1).ToString("0000"));
+		}
+
+		path = "reductiveMetallurgy/textures/parts/icons/";
 		Ravari = new PartType()
 		{
 			/*ID*/field_1528 = "wheel-verrin",
@@ -361,6 +380,13 @@ public static class Wheel
 		path = "reductiveMetallurgy/textures/parts/atom_cage_broken.lighting/";
 
 		var atomCageBrokenLighting = new class_126(
+			class_235.method_615(path + "left"),
+			class_235.method_615(path + "right"),
+			class_235.method_615(path + "bottom"),
+			class_235.method_615(path + "top")
+		);
+		path = "reductiveMetallurgy/textures/parts/atom_cage_broken_alt.lighting/";
+		var atomCageBrokenLightingAlt = new class_126(
 			class_235.method_615(path + "left"),
 			class_235.method_615(path + "right"),
 			class_235.method_615(path + "bottom"),
@@ -423,8 +449,10 @@ public static class Wheel
 				float num4 = i * 60 * (float)Math.PI / 180f;
 				float radians = renderer.field_1798 + num4;
 				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
-				Method_2003.Invoke(editor, new object[] { isSpent ? atomCageBrokenLighting : atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
 
+				var atomcages = atomCageLighting;
+				if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;
+				Method_2003.Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
 			}
 		});
 	}
