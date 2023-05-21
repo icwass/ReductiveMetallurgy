@@ -225,7 +225,7 @@ public class MainClass : QuintessentialMod
 			ravariWheels.Add(ravariWheel);
 		}
 
-		void findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot, out bool successFlag) {
+		bool findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot) {
 			//////////// this should probably be moved to wheel.cs at some point
 			// based somewhat on method_1850
 
@@ -250,14 +250,13 @@ public class MainClass : QuintessentialMod
 					if ((wheelPartSimState.field_2724 + hex) == target && actionIsPossible(metalWheel,rot))
 					{
 						wheelResult = wheel;
-						successFlag = true;
-						return;
+						return true;
 					}
 				}
 			}
 			rot = default(HexRotation);
 			wheelResult = default(Part);
-			successFlag = false;
+			return false;
 		}
 
 		// fire the glyphs!
@@ -275,9 +274,8 @@ public class MainClass : QuintessentialMod
 				AtomReference atomInput = default(AtomReference);
 				Part ravariWheel;
 				HexRotation rot;
-				bool foundQuicksilverInput = maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput);
-				bool foundPromotableRavari = false;
-				findSatisfactoryWheel(part.method_1184(hexProject), true, ravariWheels, out ravariWheel, out rot, out foundPromotableRavari);
+				bool foundQuicksilverInput = maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput) && atomInput.field_2280 == quicksilverAtomType();
+				bool foundPromotableRavari = findSatisfactoryWheel(part.method_1184(hexProject), true, ravariWheels, out ravariWheel, out rot);
 
 				if (foundQuicksilverInput
 				&& !atomInput.field_2281 // a single atom
@@ -309,9 +307,7 @@ public class MainClass : QuintessentialMod
 				HexRotation rot = HexRotation.R0;
 				bool outputNotBlocked = !maybeFindAtom(part, hexOutput, new List<Part>(), true).method_99(out _);
 				bool foundDemotableAtom = maybeFindAtom(part, hexReject, new List<Part>()).method_99(out atomDemote);
-				bool foundDemotableRavari = false;
-
-				findSatisfactoryWheel(part.method_1184(hexReject), false, ravariWheels, out ravariWheel, out rot, out foundDemotableRavari);
+				bool foundDemotableRavari = findSatisfactoryWheel(part.method_1184(hexReject), false, ravariWheels, out ravariWheel, out rot);
 
 				if (outputNotBlocked // output not blocked
 				&& (foundDemotableRavari || (foundDemotableAtom && API.applyRejectionRule(atomDemote.field_2280, out rejectedAtomType)))
