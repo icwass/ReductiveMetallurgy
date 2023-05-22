@@ -21,17 +21,6 @@ public static class Glyphs
 	public static PartType Rejection, Deposition, Proliferation;
 
 
-
-
-
-	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
-	private static AtomType leadAtomType() => AtomTypes.field_1681;
-	private static AtomType tinAtomType() => AtomTypes.field_1683;
-	private static AtomType ironAtomType() => AtomTypes.field_1684;
-	private static AtomType copperAtomType() => AtomTypes.field_1682;
-	private static AtomType silverAtomType() => AtomTypes.field_1685;
-	private static AtomType goldAtomType() => AtomTypes.field_1686;
-
 	private static PartType makeGlyph(
 		string id,
 		string name,
@@ -127,24 +116,24 @@ public static class Glyphs
 		ContentLoaded = true;
 
 		//add rules for vanilla metals
-		API.addRejectionRule(goldAtomType(), silverAtomType());
-		API.addRejectionRule(silverAtomType(), copperAtomType());
-		API.addRejectionRule(copperAtomType(), ironAtomType());
-		API.addRejectionRule(ironAtomType(), tinAtomType());
-		API.addRejectionRule(tinAtomType(), leadAtomType());
+		API.addRejectionRule(API.goldAtomType(), API.silverAtomType());
+		API.addRejectionRule(API.silverAtomType(), API.copperAtomType());
+		API.addRejectionRule(API.copperAtomType(), API.ironAtomType());
+		API.addRejectionRule(API.ironAtomType(), API.tinAtomType());
+		API.addRejectionRule(API.tinAtomType(), API.leadAtomType());
 
-		API.addDepositionRule(goldAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), ironAtomType()));
-		API.addDepositionRule(silverAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
-		API.addDepositionRule(copperAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), tinAtomType()));
-		API.addDepositionRule(ironAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
-		API.addDepositionRule(tinAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
+		API.addDepositionRule(API.goldAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.ironAtomType()));
+		API.addDepositionRule(API.silverAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.tinAtomType()));
+		API.addDepositionRule(API.copperAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.tinAtomType()));
+		API.addDepositionRule(API.ironAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.leadAtomType()));
+		API.addDepositionRule(API.tinAtomType(), new Pair<AtomType, AtomType>(API.leadAtomType(), API.leadAtomType()));
 
-		API.addProliferationRule(goldAtomType(), new Pair<AtomType, AtomType>(goldAtomType(), ironAtomType()));
-		API.addProliferationRule(silverAtomType(), new Pair<AtomType, AtomType>(silverAtomType(), ironAtomType()));
-		API.addProliferationRule(copperAtomType(), new Pair<AtomType, AtomType>(copperAtomType(), tinAtomType()));
-		API.addProliferationRule(ironAtomType(), new Pair<AtomType, AtomType>(ironAtomType(), tinAtomType()));
-		API.addProliferationRule(tinAtomType(), new Pair<AtomType, AtomType>(tinAtomType(), leadAtomType()));
-		API.addProliferationRule(leadAtomType(), new Pair<AtomType, AtomType>(leadAtomType(), leadAtomType()));
+		API.addProliferationRule(API.goldAtomType(), new Pair<AtomType, AtomType>(API.goldAtomType(), API.ironAtomType()));
+		API.addProliferationRule(API.silverAtomType(), new Pair<AtomType, AtomType>(API.silverAtomType(), API.ironAtomType()));
+		API.addProliferationRule(API.copperAtomType(), new Pair<AtomType, AtomType>(API.copperAtomType(), API.tinAtomType()));
+		API.addProliferationRule(API.ironAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.tinAtomType()));
+		API.addProliferationRule(API.tinAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.leadAtomType()));
+		API.addProliferationRule(API.leadAtomType(), new Pair<AtomType, AtomType>(API.leadAtomType(), API.leadAtomType()));
 
 		string path;
 		path = "reductiveMetallurgy/textures/parts/icons/";
@@ -350,7 +339,7 @@ public static class Glyphs
 			Texture[] symbolTextures = new Texture[3]
 			{
 				proliferationSymbols[0],
-				proliferationSymbols[ atomsOfferedAsInput.Contains(quicksilverAtomType()) ? 1 : 2],
+				proliferationSymbols[ atomsOfferedAsInput.Contains(API.quicksilverAtomType()) ? 1 : 2],
 				proliferationSymbols[ atomsOfferedAsInput.Any(x => API.applyProliferationRule(x, out _ )) ? 3 : 4]
 			};
 

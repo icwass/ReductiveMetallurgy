@@ -18,21 +18,21 @@ using Texture = class_256;
 
 public static class API
 {
-	public static Permissions perm_rejection = (Permissions)524288; // 0x00080000
-	public static Permissions perm_deposition = (Permissions)1048576; // 0x00100000
-	public static Permissions perm_proliferation = (Permissions)2097152; // 0x00200000
-	public static Permissions perm_ravari = (Permissions)536870912; // 0x20000000
+	public static Permissions perm_rejection = (Permissions)524288;		// 0x00080000
+	public static Permissions perm_deposition = (Permissions)1048576;	// 0x00100000
+	public static Permissions perm_proliferation = (Permissions)2097152;// 0x00200000
+	public static Permissions perm_ravari = (Permissions)536870912;     // 0x20000000
 
 	#region unused_permissions
-	//public static Permissions unused = (Permissions)16; // 0x00000010
-	//public static Permissions unused = (Permissions)32; // 0x00000020
-	//public static Permissions unused = (Permissions)64; // 0x00000040
-	//public static Permissions unused = (Permissions)128; // 0x00000080
+	//public static Permissions unused = (Permissions)16;				// 0x00000010
+	//public static Permissions unused = (Permissions)32;				// 0x00000020
+	//public static Permissions unused = (Permissions)64;				// 0x00000040
+	//public static Permissions unused = (Permissions)128;				// 0x00000080
 
-	//public static Permissions unused = (Permissions)134217728; // 0x08000000
+	//public static Permissions unused = (Permissions)134217728;		// 0x08000000
 
-	//public static Permissions perm_daas = (Permissions)1073741824; // 0x40000000
-	//public static Permissions unused = (Permissions)2147483648; // 0x80000000
+	//public static Permissions unused = (Permissions)1073741824;		// 0x40000000
+	//public static Permissions unused = (Permissions)2147483648;		// 0x80000000
 	#endregion
 
 	private static void drawAndExecutePermissionCheckbox(PuzzleEditorScreen pes_self, Vector2 position, string label, Permissions perms)
@@ -61,13 +61,13 @@ public static class API
 
 
 	#region ruleDictionaries
-	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
-	private static AtomType leadAtomType() => AtomTypes.field_1681;
-	private static AtomType tinAtomType() => AtomTypes.field_1683;
-	private static AtomType ironAtomType() => AtomTypes.field_1684;
-	private static AtomType copperAtomType() => AtomTypes.field_1682;
-	private static AtomType silverAtomType() => AtomTypes.field_1685;
-	private static AtomType goldAtomType() => AtomTypes.field_1686;
+	public static AtomType quicksilverAtomType() => AtomTypes.field_1680;
+	public static AtomType leadAtomType() => AtomTypes.field_1681;
+	public static AtomType tinAtomType() => AtomTypes.field_1683;
+	public static AtomType ironAtomType() => AtomTypes.field_1684;
+	public static AtomType copperAtomType() => AtomTypes.field_1682;
+	public static AtomType silverAtomType() => AtomTypes.field_1685;
+	public static AtomType goldAtomType() => AtomTypes.field_1686;
 
 	private static Dictionary<AtomType, AtomType> rejectDict = new();
 	private static Dictionary<AtomType, Pair<AtomType, AtomType>> depositDict = new();

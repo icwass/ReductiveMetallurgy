@@ -41,8 +41,6 @@ public class MainClass : QuintessentialMod
 	}
 
 	// private helper functions
-	private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
-
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
 	//private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
@@ -268,13 +266,72 @@ public class MainClass : QuintessentialMod
 
 			if (partType == GlyphProjection)
 			{
+				// check if we need to project ravariWheels, either by quicksilver or by direct-projection from another ravari wheel
+
+				HexIndex hexInput = new HexIndex(0, 0);
+				HexIndex hexProject = new HexIndex(1, 0);
+
+				AtomReference atomInput = default(AtomReference);
+				AtomReference atomProject = default(AtomReference);
+				Part demotedRavariWheel, promotedRavariWheel;
+				HexRotation demotedRot, promotedRot;
+
+				bool foundQuicksilverInput =
+					maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
+					&& atomInput.field_2280 == API.quicksilverAtomType() // quicksilver atom
+					&& !atomInput.field_2281 // a single atom
+					&& !atomInput.field_2282 // not held by a gripper
+				;
+				bool foundPromotableMetal =
+					maybeFindAtom(part, hexProject, gripperList).method_99(out atomProject)
+					&& atomInput.field_2280.field_2297.method_1085() // AtomType has a projection result
+				;
+				bool foundDemotableRavari = findSatisfactoryWheel(part.method_1184(hexInput), false, ravariWheels, out demotedRavariWheel, out demotedRot);
+				bool foundPromotableRavari = findSatisfactoryWheel(part.method_1184(hexProject), true, ravariWheels, out promotedRavariWheel, out promotedRot);
+
+				if (
+					(foundQuicksilverInput || foundDemotableRavari) // found input
+					&& (foundPromotableMetal || foundPromotableRavari) // found output
+					&& !(foundQuicksilverInput && foundPromotableMetal) // ignore the case that the projection glyph already covers
+				)
+				{
+					// sounds and animation for firing the glyph
+					playSound(sim_self, projectionActivate);
+					Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexProject.Rotated(part.method_1163()));
+					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
+					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, part.method_1163().ToRadians()));
+
+					if (foundQuicksilverInput)
+					{
+						// delete the input atom
+						atomInput.field_2277.method_1107(atomInput.field_2278);
+						// draw input getting consumed
+						SEB.field_3937.Add(new class_286(SEB, atomInput.field_2278, atomInput.field_2280));
+					}
+					else // foundDemotableRavari
+					{
+						var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
+						metalWheel.reject(demotedRot);
+					}
+
+					//delete the input atom
+					//draw the input getting consumed
+					//take care of outputs
+
+
+				}
+
+
+			}
+			else if (partType == GlyphProjection)
+			{
 				//check if we need to project metal wheels
 				HexIndex hexInput = new HexIndex(0, 0);
 				HexIndex hexProject = new HexIndex(1, 0);
 				AtomReference atomInput = default(AtomReference);
 				Part ravariWheel;
 				HexRotation rot;
-				bool foundQuicksilverInput = maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput) && atomInput.field_2280 == quicksilverAtomType();
+				bool foundQuicksilverInput = maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput) && atomInput.field_2280 == API.quicksilverAtomType();
 				bool foundPromotableRavari = findSatisfactoryWheel(part.method_1184(hexProject), true, ravariWheels, out ravariWheel, out rot);
 
 				if (foundQuicksilverInput
@@ -332,7 +389,7 @@ public class MainClass : QuintessentialMod
 					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
 					//take care of outputs
-					spawnAtomAtHex(part, hexOutput, quicksilverAtomType());
+					spawnAtomAtHex(part, hexOutput, API.quicksilverAtomType());
 					Texture[] disposalFlashAnimation = class_238.field_1989.field_90.field_240;
 					Vector2 animationPosition = hexGraphicalOffset(part.method_1161() + hexOutput.Rotated(part.method_1163())) + new Vector2(80f, 0f);
 					SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
@@ -397,7 +454,7 @@ public class MainClass : QuintessentialMod
 					&& maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
 					&& !atomDown.field_2281 // a single atom
 					&& !atomDown.field_2282 // not held by a gripper
-					&& (atomUp.field_2280 == quicksilverAtomType() || atomDown.field_2280 == quicksilverAtomType())
+					&& (atomUp.field_2280 == API.quicksilverAtomType() || atomDown.field_2280 == API.quicksilverAtomType())
 					)
 					{
 						Pair<AtomType, AtomType> prolifAtomTypePair;

@@ -69,14 +69,6 @@ public static class Wheel
 		}
 	}
 
-	//private static AtomType quicksilverAtomType() => AtomTypes.field_1680;
-	private static AtomType leadAtomType() => AtomTypes.field_1681;
-	private static AtomType tinAtomType() => AtomTypes.field_1683;
-	private static AtomType ironAtomType() => AtomTypes.field_1684;
-	private static AtomType copperAtomType() => AtomTypes.field_1682;
-	private static AtomType silverAtomType() => AtomTypes.field_1685;
-	private static AtomType goldAtomType() => AtomTypes.field_1686;
-
 	public struct MetalWheel
 	{
 		// APIs ////////////////////
@@ -237,14 +229,14 @@ public static class Wheel
 			new HexIndex(1, -1)
 		};
 		readonly static AtomType[] metalIDs = new AtomType[8] {
-			leadAtomType(), // for array safety
-			leadAtomType(),
-			tinAtomType(),
-			ironAtomType(),
-			copperAtomType(),
-			silverAtomType(),
-			goldAtomType(),
-			goldAtomType() // for array safety
+			API.leadAtomType(), // array filler
+			API.leadAtomType(),
+			API.tinAtomType(),
+			API.ironAtomType(),
+			API.copperAtomType(),
+			API.silverAtomType(),
+			API.goldAtomType(),
+			API.goldAtomType() // array filler
 		};
 		//==== DATA LAYOUT ====//
 		// 32 bits total:
