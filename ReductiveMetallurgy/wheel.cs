@@ -274,7 +274,6 @@ public static class Wheel
 		foreach (var dir in QuintessentialLoader.ModContentDirectories)
 		{
 			string filepath = Path.Combine(dir, path);
-			Logger.Log(filepath);
 			if (File.Exists(filepath))
 			{
 				RavariSpend = new Sound()
