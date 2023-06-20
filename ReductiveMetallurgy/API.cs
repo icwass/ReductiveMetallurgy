@@ -39,7 +39,10 @@ public static class API
 	{
 		var pes_dyn = new DynamicData(pes_self);
 		var maybePuzzle = pes_dyn.Get<Maybe<Puzzle>>("field_2789");
-		if (!maybePuzzle.method_1085()) return;
+		if (GameLogic.field_2434.method_938() is MoleculeEditorScreen
+			|| GameLogic.field_2434.method_952<PuzzleInfoScreen>()
+			|| !maybePuzzle.method_1085()
+		) return;
 
 		var puzzle = maybePuzzle.method_1087();
 		typeof(PuzzleEditorScreen).GetMethod("method_1261", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(pes_self, new object[] { position, label, perms, puzzle });
