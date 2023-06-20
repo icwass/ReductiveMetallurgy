@@ -12,7 +12,6 @@ namespace ReductiveMetallurgy;
 
 using PartType = class_139;
 using Permissions = enum_149;
-using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
 
@@ -116,24 +115,24 @@ public static class Glyphs
 		ContentLoaded = true;
 
 		//add rules for vanilla metals
-		API.addRejectionRule(API.goldAtomType(), API.silverAtomType());
-		API.addRejectionRule(API.silverAtomType(), API.copperAtomType());
-		API.addRejectionRule(API.copperAtomType(), API.ironAtomType());
-		API.addRejectionRule(API.ironAtomType(), API.tinAtomType());
-		API.addRejectionRule(API.tinAtomType(), API.leadAtomType());
+		API.addRejectionRule(API.goldAtomType()		, API.silverAtomType());
+		API.addRejectionRule(API.silverAtomType()	, API.copperAtomType());
+		API.addRejectionRule(API.copperAtomType()	, API.ironAtomType());
+		API.addRejectionRule(API.ironAtomType()		, API.tinAtomType());
+		API.addRejectionRule(API.tinAtomType()		, API.leadAtomType());
 
-		API.addDepositionRule(API.goldAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.ironAtomType()));
-		API.addDepositionRule(API.silverAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.tinAtomType()));
-		API.addDepositionRule(API.copperAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.tinAtomType()));
-		API.addDepositionRule(API.ironAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.leadAtomType()));
-		API.addDepositionRule(API.tinAtomType(), new Pair<AtomType, AtomType>(API.leadAtomType(), API.leadAtomType()));
+		API.addDepositionRule(API.goldAtomType()	, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.ironAtomType()));
+		API.addDepositionRule(API.silverAtomType()	, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.tinAtomType()));
+		API.addDepositionRule(API.copperAtomType()	, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.tinAtomType()));
+		API.addDepositionRule(API.ironAtomType()	, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.leadAtomType()));
+		API.addDepositionRule(API.tinAtomType()		, new Pair<AtomType, AtomType>(API.leadAtomType()	, API.leadAtomType()));
 
-		API.addProliferationRule(API.goldAtomType(), new Pair<AtomType, AtomType>(API.goldAtomType(), API.ironAtomType()));
-		API.addProliferationRule(API.silverAtomType(), new Pair<AtomType, AtomType>(API.silverAtomType(), API.ironAtomType()));
-		API.addProliferationRule(API.copperAtomType(), new Pair<AtomType, AtomType>(API.copperAtomType(), API.tinAtomType()));
-		API.addProliferationRule(API.ironAtomType(), new Pair<AtomType, AtomType>(API.ironAtomType(), API.tinAtomType()));
-		API.addProliferationRule(API.tinAtomType(), new Pair<AtomType, AtomType>(API.tinAtomType(), API.leadAtomType()));
-		API.addProliferationRule(API.leadAtomType(), new Pair<AtomType, AtomType>(API.leadAtomType(), API.leadAtomType()));
+		API.addProliferationRule(API.goldAtomType()		, new Pair<AtomType, AtomType>(API.goldAtomType()	, API.ironAtomType()));
+		API.addProliferationRule(API.silverAtomType()	, new Pair<AtomType, AtomType>(API.silverAtomType()	, API.ironAtomType()));
+		API.addProliferationRule(API.copperAtomType()	, new Pair<AtomType, AtomType>(API.copperAtomType()	, API.tinAtomType()));
+		API.addProliferationRule(API.ironAtomType()		, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.tinAtomType()));
+		API.addProliferationRule(API.tinAtomType()		, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.leadAtomType()));
+		API.addProliferationRule(API.leadAtomType()		, new Pair<AtomType, AtomType>(API.leadAtomType()	, API.leadAtomType()));
 
 		string path;
 		path = "reductiveMetallurgy/textures/parts/icons/";
@@ -178,7 +177,6 @@ public static class Glyphs
 		QApi.AddPartTypeToPanel(Deposition, purifier);
 		QApi.AddPartTypeToPanel(Proliferation, purifier);
 
-
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
 		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
@@ -193,7 +191,6 @@ public static class Glyphs
 			class_235.method_615(path + "symbol_lead_inactive"),
 			class_235.method_615(path + "symbol_lead_active")
 		};
-
 
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;

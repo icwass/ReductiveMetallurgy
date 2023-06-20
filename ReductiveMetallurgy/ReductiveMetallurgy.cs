@@ -10,9 +10,6 @@ using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
-//using PartType = class_139;
-//using Permissions = enum_149;
-using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
 
@@ -40,7 +37,7 @@ public class MainClass : QuintessentialMod
 		RavariAlternateTexture = SET.RavariAlternateTexture;
 	}
 
-	// private helper functions
+	// helper functions
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
 	//private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
@@ -51,10 +48,7 @@ public class MainClass : QuintessentialMod
 		molecule.method_1106(newAtomType, atomReference.field_2278);
 	}
 
-	private static void playSound(Sim sim_self, Sound sound)
-	{
-		typeof(Sim).GetMethod("method_1856", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sim_self, new object[] { sound });
-	}
+	private static void playSound(Sim sim_self, Sound sound) => API.PrivateMethod<Sim>("method_1856").Invoke(sim_self, new object[] { sound });
 
 	//drawing helpers
 	public static Vector2 hexGraphicalOffset(HexIndex hex) => class_187.field_1742.method_492(hex);
@@ -74,26 +68,11 @@ public class MainClass : QuintessentialMod
 		Wheel.LoadContent();
 
 		//------------------------- HOOKING -------------------------//
-		hook_Sim_method_1828 = new Hook(
-		typeof(Sim).GetMethod("method_1828", BindingFlags.Instance | BindingFlags.NonPublic),
-		typeof(MainClass).GetMethod("OnSimMethod1828", BindingFlags.Static | BindingFlags.NonPublic)
-		);
-		hook_Sim_method_1829 = new Hook(
-		typeof(Sim).GetMethod("method_1829", BindingFlags.Instance | BindingFlags.NonPublic),
-		typeof(MainClass).GetMethod("OnSimMethod1829", BindingFlags.Static | BindingFlags.NonPublic)
-		);
-		hook_Sim_method_1832 = new Hook(
-		typeof(Sim).GetMethod("method_1832", BindingFlags.Instance | BindingFlags.NonPublic),
-		typeof(MainClass).GetMethod("OnSimMethod1832", BindingFlags.Static | BindingFlags.NonPublic)
-		);
-		hook_Sim_method_1835 = new Hook(
-		typeof(Sim).GetMethod("method_1835", BindingFlags.Instance | BindingFlags.NonPublic),
-		typeof(MainClass).GetMethod("OnSimMethod1835", BindingFlags.Static | BindingFlags.NonPublic)
-		);
-		hook_Sim_method_1836 = new Hook(
-		typeof(Sim).GetMethod("method_1836", BindingFlags.Instance | BindingFlags.NonPublic),
-		typeof(MainClass).GetMethod("OnSimMethod1836", BindingFlags.Static | BindingFlags.NonPublic)
-		);
+		hook_Sim_method_1828 = new Hook(API.PrivateMethod<Sim>("method_1828"), OnSimMethod1828);
+		hook_Sim_method_1829 = new Hook(API.PrivateMethod<Sim>("method_1829"), OnSimMethod1829);
+		hook_Sim_method_1832 = new Hook(API.PrivateMethod<Sim>("method_1832"), OnSimMethod1832);
+		hook_Sim_method_1835 = new Hook(API.PrivateMethod<Sim>("method_1835"), OnSimMethod1835);
+		hook_Sim_method_1836 = new Hook(API.PrivateMethod<Sim>("method_1836"), OnSimMethod1836);
 	}
 
 	private delegate void orig_Sim_method_1828(Sim self);
@@ -122,24 +101,14 @@ public class MainClass : QuintessentialMod
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool param_5369)
 	{
 		My_Method_1832(sim_self, param_5369);
-		Wheel.manageSpentRavaris(sim_self,
-			() => orig(sim_self, param_5369)
-		);
+		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, param_5369));
 	}
-	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self)
-	{
-		//spent Ravari wheels need to have different collision behavior
-		Wheel.manageSpentRavaris(sim_self,
-			() => orig(sim_self)
-		);
-	}
-	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self)
-	{
-		//spent Ravari wheels need to have different collision behavior
-		Wheel.manageSpentRavaris(sim_self,
-			() => orig(sim_self)
-		);
-	}
+	//spent Ravari wheels need to have different collision behavior
+	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
+	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
+
+
+
 	public static void My_Method_1829(Sim sim_self)
 	{
 		var sim_dyn = new DynamicData(sim_self);
@@ -172,28 +141,23 @@ public class MainClass : QuintessentialMod
 		var struct122List = sim_dyn.Get<List<Sim.struct_122>>("field_3826");
 		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
 
+		// find all grippers that are holding molecules
+		// and make them temporarily release them
 		List<Part> gripperList = new List<Part>();
 		foreach (Part part in partList)
 		{
-			foreach (Part key in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))//for each gripper that is holding a molecule
+			foreach (Part gripper in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))
 			{
-				//add gripper to gripperList
-				gripperList.Add(key);
-				//expanded version of sim_self.method_1842(key);//release molecule from the gripper
-				PartSimState partSimState = partSimStates[key];
-				partSimState.field_2728 = false;
-				partSimState.field_2729 = struct_18.field_1431;
+				gripperList.Add(gripper);
+				API.PrivateMethod<Sim>("method_1842").Invoke(sim_self, new object[] { gripper });
 			}
 		}
 		//----- BOILERPLATE-1 END -----//
 
 		//define some helpers
-		Type simType = typeof(Sim);
-
 		Maybe<AtomReference> maybeFindAtom(Part part, HexIndex hex, List<Part> gripperList, bool checkWheels = false)
 		{
-			MethodInfo Method_1850 = simType.GetMethod("method_1850", BindingFlags.NonPublic | BindingFlags.Instance);
-			return (Maybe<AtomReference>)Method_1850.Invoke(sim_self, new object[] { part, hex, gripperList, checkWheels });
+			return (Maybe<AtomReference>)API.PrivateMethod<Sim>("method_1850").Invoke(sim_self, new object[] { part, hex, gripperList, checkWheels });
 		}
 
 		void addColliderAtHex(Part part, HexIndex hex)

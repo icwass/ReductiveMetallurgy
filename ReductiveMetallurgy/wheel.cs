@@ -12,7 +12,6 @@ using System.Reflection;
 namespace ReductiveMetallurgy;
 
 using PartType = class_139;
-//using Permissions = enum_149;
 using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
@@ -26,19 +25,15 @@ public static class Wheel
 
 	public static void drawGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
-		var sebType = typeof(SolutionEditorBase);
-		MethodInfo Method_2006 = sebType.GetMethod("method_2006", BindingFlags.NonPublic | BindingFlags.Static);
-		MethodInfo Method_2016 = sebType.GetMethod("method_2016", BindingFlags.NonPublic | BindingFlags.Static);
-
 		var cageGlow = class_238.field_1989.field_97.field_367; // textures/select/cage
 		Color color = Color.White.WithAlpha(alpha);
 		class_236 class236 = seb_self.method_1989(part, pos);
 
-		Method_2006.Invoke(seb_self, new object[] { part.method_1165(), PartTypes.field_1767.field_1534, class236, color });
+		API.PrivateMethod<SolutionEditorBase>("method_2006").Invoke(seb_self, new object[] { part.method_1165(), PartTypes.field_1767.field_1534, class236, color });
 		for (int index = 0; index < 6; ++index)
 		{
 			float num = index * 60 * ((float)Math.PI / 180f);
-			Method_2016.Invoke(seb_self, new object[] { cageGlow, color, class236.field_1984, class236.field_1985 + num });
+			API.PrivateMethod<SolutionEditorBase>("method_2016").Invoke(seb_self, new object[] { cageGlow, color, class236.field_1984, class236.field_1985 + num });
 		}
 	}
 
@@ -352,17 +347,8 @@ public static class Wheel
 
 		RavariSpent = new PartType()
 		{
-			//*ID*/field_1528 = "wheel-verrin-spent",
-			//*Name*/field_1529 = class_134.method_253("Ravari's Wheel, Spent", string.Empty),
-			//*Desc*/field_1530 = class_134.method_253("This wheel used to have metal atoms. Alas, they are gone.", string.Empty),
-			//*Cost*/field_1531 = 30,
 			/*Type*/field_1532 = (enum_2) 1,
 			/*Programmable?*/field_1533 = true,
-			//*Force-rotatable*/field_1536 = true,
-			//*Icon*/field_1547 = class_235.method_615(path + "verrin"),
-			//*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
-			//*Permissions*/field_1551 = API.perm_ravari,
-			//*Only One Allowed?*/field_1552 = true,
 		};
 
 		var berlo = PartTypes.field_1771;
@@ -395,13 +381,9 @@ public static class Wheel
 			PartSimState partSimState = editor.method_507().method_481(part);
 			var simTime = editor.method_504();
 
-			var sebType = typeof(SolutionEditorBase);
-			MethodInfo Method_2003 = sebType.GetMethod("method_2003", BindingFlags.NonPublic | BindingFlags.Static);
-			MethodInfo Method_2005 = sebType.GetMethod("method_2005", BindingFlags.NonPublic | BindingFlags.Static);
-
 			//draw arm stubs
 			var hexArmRotations = PartTypes.field_1767.field_1534;
-			Method_2005.Invoke(editor, new object[] { part.method_1165(), hexArmRotations, class236 });
+			API.PrivateMethod<SolutionEditorBase>("method_2005").Invoke(editor, new object[] { part.method_1165(), hexArmRotations, class236 });
 
 			// draw arms and their contents, if any
 			int frameIndex = class_162.method_404((int)(simTime * projectAtomAnimation.Length), 0, projectAtomAnimation.Length);
@@ -443,7 +425,7 @@ public static class Wheel
 
 				var atomcages = atomCageLighting;
 				if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;
-				Method_2003.Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
+				API.PrivateMethod<SolutionEditorBase>("method_2003").Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
 			}
 		});
 	}

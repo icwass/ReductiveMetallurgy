@@ -10,11 +10,8 @@ using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
-using PartType = class_139;
 using Permissions = enum_149;
 using AtomTypes = class_175;
-using PartTypes = class_191;
-using Texture = class_256;
 
 public static class API
 {
@@ -34,6 +31,7 @@ public static class API
 	//public static Permissions unused = (Permissions)1073741824;		// 0x40000000
 	//public static Permissions unused = (Permissions)2147483648;		// 0x80000000
 	#endregion
+	public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
 	private static void drawAndExecutePermissionCheckbox(PuzzleEditorScreen pes_self, Vector2 position, string label, Permissions perms)
 	{
@@ -43,9 +41,9 @@ public static class API
 			|| GameLogic.field_2434.method_952<PuzzleInfoScreen>()
 			|| !maybePuzzle.method_1085()
 		) return;
-
+		
 		var puzzle = maybePuzzle.method_1087();
-		typeof(PuzzleEditorScreen).GetMethod("method_1261", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(pes_self, new object[] { position, label, perms, puzzle });
+		API.PrivateMethod<PuzzleEditorScreen>("method_1261").Invoke(pes_self, new object[] { position, label, perms, puzzle });
 	}
 	public static void drawPermissionCheckboxes(PuzzleEditorScreen pes_self)
 	{
@@ -60,8 +58,6 @@ public static class API
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Ravari", API.perm_ravari);
 		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3.5f, -1), "Proliferation", API.perm_proliferation);
 	}
-
-
 
 	#region ruleDictionaries
 	public static AtomType quicksilverAtomType() => AtomTypes.field_1680;
@@ -86,9 +82,8 @@ public static class API
 	//rule-dictionary generics
 	private static bool applyTRule<T>(AtomType hi, Dictionary<AtomType, T> dict, out T lo)
 	{
-		lo = default(T);
 		bool ret = dict.ContainsKey(hi);
-		if (ret) lo = dict[hi];
+		lo = ret ? dict[hi] : default(T);
 		return ret;
 	}
 
