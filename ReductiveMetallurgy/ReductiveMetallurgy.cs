@@ -401,44 +401,67 @@ public class MainClass : QuintessentialMod
 
 				if (!glyphIsFiring(partSimState))
 				{
-					AtomReference atomUp;
-					AtomReference atomDown;
-
 					if (isConsumptionHalfstep
 					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
 					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
-					&& maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp) // up atom exists
-					&& !atomUp.field_2281 // a single atom
-					&& !atomUp.field_2282 // not held by a gripper
-					&& maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
-					&& !atomDown.field_2281 // a single atom
-					&& !atomDown.field_2282 // not held by a gripper
-					&& (atomUp.field_2280 == API.quicksilverAtomType() || atomDown.field_2280 == API.quicksilverAtomType())
 					)
 					{
-						Pair<AtomType, AtomType> prolifAtomTypePair;
-						void fireProliferate(AtomReference atomProlif, AtomReference atomQuicksilver)
+						AtomReference atomUp;
+						AtomReference atomDown;
+						bool foundAtomUp = maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp)
+							&& !atomUp.field_2281 // a single atom
+							&& !atomUp.field_2282 // not held by a gripper
+						;
+						bool foundAtomDown = maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
+							&& !atomDown.field_2281 // a single atom
+							&& !atomDown.field_2282 // not held by a gripper
+						;
+
+						bool proliferateUp = foundAtomUp && API.applyProliferationRule(atomUp.field_2280, out _);
+						bool proliferateDown = foundAtomDown && API.applyProliferationRule(atomDown.field_2280, out _);
+						
+						if (proliferateUp ^ proliferateDown) // found metal input
 						{
-							glyphNeedsToFire(partSimState);
-							playSound(sim_self, animismusActivate);
-							// delete the input atoms
-							atomProlif.field_2277.method_1107(atomProlif.field_2278);
-							atomQuicksilver.field_2277.method_1107(atomQuicksilver.field_2278);
-							// draw input getting consumed
-							SEB.field_3937.Add(new class_286(SEB, atomProlif.field_2278, atomProlif.field_2280));
-							SEB.field_3937.Add(new class_286(SEB, atomQuicksilver.field_2278, atomQuicksilver.field_2280));
-							// take care of outputs
-							partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
-							addColliderAtHex(part, hexLeft);
-							addColliderAtHex(part, hexRight);
-						}
-						if (API.applyProliferationRule(atomUp.field_2280, out prolifAtomTypePair))
-						{
-							fireProliferate(atomUp, atomDown);
-						}
-						else if (API.applyProliferationRule(atomDown.field_2280, out prolifAtomTypePair))
-						{
-							fireProliferate(atomDown, atomUp);
+							// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
+							// so finding zero or two proliferable atoms is no good
+							HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
+							HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
+
+							AtomReference atomProlif = proliferateUp ? atomUp : atomDown;
+							AtomReference atomQuicksilver = proliferateUp ? atomDown : atomUp;
+							bool foundQuicksilver = (proliferateUp ? foundAtomDown : foundAtomUp) && atomQuicksilver.field_2280 == API.quicksilverAtomType();
+							
+							Part demotedRavariWheel = default(Part);
+							HexRotation demotedRot = default(HexRotation);
+							bool foundDemotableRavari = findSatisfactoryWheel(part.method_1184(hexQuicksilver), false, ravariWheels, out demotedRavariWheel, out demotedRot);
+
+							if (foundQuicksilver || foundDemotableRavari)
+							{
+								//fire the glyph!
+								Pair<AtomType, AtomType> prolifAtomTypePair;
+								API.applyProliferationRule(atomProlif.field_2280, out prolifAtomTypePair);
+								glyphNeedsToFire(partSimState);
+								playSound(sim_self, animismusActivate);
+
+								//take care of inputs
+								atomProlif.field_2277.method_1107(atomProlif.field_2278);
+								SEB.field_3937.Add(new class_286(SEB, atomProlif.field_2278, atomProlif.field_2280));
+								if (foundQuicksilver)
+								{
+									atomQuicksilver.field_2277.method_1107(atomQuicksilver.field_2278);
+									SEB.field_3937.Add(new class_286(SEB, atomQuicksilver.field_2278, atomQuicksilver.field_2280));
+								}
+								else // foundDemotableRavari
+								{
+									var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
+									metalWheel.reject(demotedRot);
+								}
+
+								// take care of outputs
+								partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
+								addColliderAtHex(part, hexLeft);
+								addColliderAtHex(part, hexRight);
+							}
 						}
 					}
 				}
