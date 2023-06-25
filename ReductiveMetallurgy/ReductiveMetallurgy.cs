@@ -228,6 +228,9 @@ public class MainClass : QuintessentialMod
 			PartSimState partSimState = partSimStates[part];
 			var partType = part.method_1159();
 
+			var glyphFlashAnimation = class_238.field_1989.field_90.field_243;
+			void drawRavariFlash(HexIndex hex) => SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexGraphicalOffset(hex.Rotated(part.method_1163()) + part.method_1161()), glyphFlashAnimation, 30f, Vector2.Zero, 0f));
+
 			bool theRavariSpecial = !isConsumptionHalfstep; // "direct-transferring" quicksilver to/from a ravariWheel should only happen on one of the two half-steps
 
 			if (partType == GlyphProjection)
@@ -279,6 +282,7 @@ public class MainClass : QuintessentialMod
 					{
 						var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
 						metalWheel.reject(demotedRot);
+						//drawRavariFlash(hexInput);
 					}
 
 					// handle output
@@ -351,6 +355,7 @@ public class MainClass : QuintessentialMod
 					{
 						var metalWheel = new Wheel.MetalWheel(partSimStates[promotedRavariWheel]);
 						metalWheel.project(promotedRot);
+						//drawRavariFlash(hexOutput);
 					}
 				}
 			}
@@ -455,6 +460,7 @@ public class MainClass : QuintessentialMod
 								{
 									var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
 									metalWheel.reject(demotedRot);
+									//drawRavariFlash(hexQuicksilver);
 								}
 
 								// take care of outputs

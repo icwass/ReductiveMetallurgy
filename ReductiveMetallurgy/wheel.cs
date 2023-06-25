@@ -325,7 +325,7 @@ public static class Wheel
 		{
 			/*ID*/field_1528 = "wheel-verrin",
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
-			/*Desc*/field_1530 = class_134.method_253("By using Ravari's Wheel with the glyphs of projection and rejection, quicksilver can be stored or released.", string.Empty),
+			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged. The wheel also has a release mechanism.", string.Empty),
 			/*Cost*/field_1531 = 30,
 			/*Type*/field_1532 = (enum_2) 1,
 			/*Programmable?*/field_1533 = true,

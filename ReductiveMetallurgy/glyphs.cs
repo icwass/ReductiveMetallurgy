@@ -161,8 +161,8 @@ public static class Glyphs
 
 		Proliferation = makeGlyph(
 			"glyph-proliferation",
-			"Glyph of proliferation",
-			"The glyph of proliferation consumes quicksilver and an atom of metal to generate two atoms of lower form.",
+			"Glyph of Proliferation",
+			"The glyph of proliferation consumes quicksilver and an atom of metal to generate another metal atom.",
 			40, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, API.perm_proliferation,
 			class_235.method_615(path + "proliferation"),
 			class_235.method_615(path + "proliferation_hover"),
