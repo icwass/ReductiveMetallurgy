@@ -1,7 +1,7 @@
 Name: ReductiveMetallurgy
-Version: 0.1.0
+Version: 0.1.1
 Title: Reductive Metallurgy
-Desc: Introduces glyphs that can demote metals.
+Desc: Introduces glyphs and mechanisms that can demote metals.
 DLL: "ReductiveMetallurgy/bin/Debug/net452/ReductiveMetallurgy.dll"
 Dependencies:
 - Name: Quintessential
