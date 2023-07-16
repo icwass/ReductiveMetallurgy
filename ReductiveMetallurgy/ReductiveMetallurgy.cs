@@ -77,7 +77,7 @@ public class MainClass : QuintessentialMod
 
 	private delegate void orig_Sim_method_1828(Sim self);
 	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
-	private delegate void orig_Sim_method_1832(Sim self, bool param_5369);
+	private delegate void orig_Sim_method_1832(Sim self, bool isConsumptionHalfstep);
 	private delegate void orig_Sim_method_1835(Sim self);
 	private delegate void orig_Sim_method_1836(Sim self);
 	private static void OnSimMethod1828(orig_Sim_method_1828 orig, Sim sim_self)
@@ -98,10 +98,10 @@ public class MainClass : QuintessentialMod
 		if (instructionType == (enum_127) 1) My_Method_1829(sim_self);
 		orig(sim_self, instructionType);
 	}
-	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool param_5369)
+	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool isConsumptionHalfstep)
 	{
-		My_Method_1832(sim_self, param_5369);
-		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, param_5369));
+		My_Method_1832(sim_self, isConsumptionHalfstep);
+		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep));
 	}
 	//spent Ravari wheels need to have different collision behavior
 	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
@@ -155,9 +155,9 @@ public class MainClass : QuintessentialMod
 		//----- BOILERPLATE-1 END -----//
 
 		//define some helpers
-		Maybe<AtomReference> maybeFindAtom(Part part, HexIndex hex, List<Part> gripperList, bool checkWheels = false)
+		Maybe<AtomReference> maybeFindAtom(Part part, HexIndex hex, List<Part> list, bool checkWheels = false)
 		{
-			return (Maybe<AtomReference>)API.PrivateMethod<Sim>("method_1850").Invoke(sim_self, new object[] { part, hex, gripperList, checkWheels });
+			return (Maybe<AtomReference>)API.PrivateMethod<Sim>("method_1850").Invoke(sim_self, new object[] { part, hex, list, checkWheels });
 		}
 
 		void addColliderAtHex(Part part, HexIndex hex)
@@ -551,7 +551,7 @@ public class MainClass : QuintessentialMod
 	public override void PostLoad()
 	{
 		On.PuzzleEditorScreen.method_50 += PES_Method_50;
-		On.SolutionEditorBase.method_1997 += SES_Method_1997;
+		On.SolutionEditorBase.method_1997 += DrawPartSelectionGlows;
 
 		//optional dependencies
 		if (QuintessentialLoader.CodeMods.Any(mod => mod.Meta.Name == "FTSIGCTU"))
@@ -571,11 +571,11 @@ public class MainClass : QuintessentialMod
 		orig(pes_self, param_4993);
 		API.drawPermissionCheckboxes(pes_self);
 	}
-	public void SES_Method_1997(On.SolutionEditorBase.orig_method_1997 orig, SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
+	public void DrawPartSelectionGlows(On.SolutionEditorBase.orig_method_1997 orig, SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
 		if (part.method_1159() == Wheel.Ravari)
 		{
-			Wheel.drawGlow(seb_self, part, pos, alpha);
+			Wheel.drawSelectionGlow(seb_self, part, pos, alpha);
 		}
 
 		orig(seb_self, part, pos, alpha);

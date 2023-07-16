@@ -23,17 +23,19 @@ public static class Wheel
 	public static Texture[] RavariSeparateAnimation;
 	public static Texture[] RavariFlyAnimation;
 
-	public static void drawGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
+	public static void drawSelectionGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
-		var cageGlow = class_238.field_1989.field_97.field_367; // textures/select/cage
-		Color color = Color.White.WithAlpha(alpha);
+		var cageGlowTexture = class_238.field_1989.field_97.field_367; // textures/select/cage
+		int armLength = 1; // part.method_1165()
+		var armRotations = PartTypes.field_1767.field_1534;
 		class_236 class236 = seb_self.method_1989(part, pos);
+		Color color = Color.White.WithAlpha(alpha);
 
-		API.PrivateMethod<SolutionEditorBase>("method_2006").Invoke(seb_self, new object[] { part.method_1165(), PartTypes.field_1767.field_1534, class236, color });
+		API.PrivateMethod<SolutionEditorBase>("method_2006").Invoke(seb_self, new object[] { armLength, armRotations, class236, color });
 		for (int index = 0; index < 6; ++index)
 		{
 			float num = index * 60 * ((float)Math.PI / 180f);
-			API.PrivateMethod<SolutionEditorBase>("method_2016").Invoke(seb_self, new object[] { cageGlow, color, class236.field_1984, class236.field_1985 + num });
+			API.PrivateMethod<SolutionEditorBase>("method_2016").Invoke(seb_self, new object[] { cageGlowTexture, color, class236.field_1984, class236.field_1985 + num });
 		}
 	}
 
@@ -291,7 +293,7 @@ public static class Wheel
 		On.class_201.method_540 += Method_540;
 		//=========================//
 
-
+		/*
 		Texture blankTexture = class_238.field_1989.field_71;
 		AtomType emptyAtom = new AtomType()
 		{
@@ -305,6 +307,9 @@ public static class Wheel
 				field_995 = class_238.field_1989.field_81.field_597//salt_shade
 			}
 		};
+		var tempAtom = emptyAtom;
+		*/
+		var tempAtom = API.quicksilverAtomType();
 
 		RavariSeparateAnimation = new Texture[28];
 		path = "reductiveMetallurgy/textures/parts/ravari_separate.array/separate_";
@@ -332,12 +337,12 @@ public static class Wheel
 			/*Force-rotatable*/field_1536 = true,
 			/*Berlo Atoms*/field_1544 = new Dictionary<HexIndex, AtomType>()
 			{
-				{new HexIndex(0, 1),  emptyAtom},
-				{new HexIndex(1, 0),  emptyAtom},
-				{new HexIndex(1, -1), emptyAtom},
-				{new HexIndex(0, -1), emptyAtom},
-				{new HexIndex(-1, 0), emptyAtom},
-				{new HexIndex(-1, 1), emptyAtom},
+				{new HexIndex(0, 1),  tempAtom},
+				{new HexIndex(1, 0),  tempAtom},
+				{new HexIndex(1, -1), tempAtom},
+				{new HexIndex(0, -1), tempAtom},
+				{new HexIndex(-1, 0), tempAtom},
+				{new HexIndex(-1, 1), tempAtom},
 			},
 			/*Icon*/field_1547 = class_235.method_615(path + "verrin"),
 			/*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),

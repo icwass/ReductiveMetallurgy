@@ -15,21 +15,21 @@ using AtomTypes = class_175;
 
 public static class API
 {
-	public static Permissions perm_rejection = (Permissions)524288;		// 0x00080000
-	public static Permissions perm_deposition = (Permissions)1048576;	// 0x00100000
-	public static Permissions perm_proliferation = (Permissions)2097152;// 0x00200000
-	public static Permissions perm_ravari = (Permissions)536870912;     // 0x20000000
+	public static Permissions perm_rejection = (Permissions)	0x00080000;
+	public static Permissions perm_deposition = (Permissions)	0x00100000;
+	public static Permissions perm_proliferation = (Permissions)0x00200000;
+	public static Permissions perm_ravari = (Permissions)		0x20000000;
 
 	#region unused_permissions
-	//public static Permissions unused = (Permissions)16;				// 0x00000010
-	//public static Permissions unused = (Permissions)32;				// 0x00000020
-	//public static Permissions unused = (Permissions)64;				// 0x00000040
-	//public static Permissions unused = (Permissions)128;				// 0x00000080
+	//public static Permissions unused = (Permissions)			0x00000010;
+	//public static Permissions unused = (Permissions)			0x00000020;
+	//public static Permissions unused = (Permissions)			0x00000040;
+	//public static Permissions unused = (Permissions)			0x00000080;
 
-	//public static Permissions unused = (Permissions)134217728;		// 0x08000000
+	//public static Permissions unused = (Permissions)			0x08000000;
 
-	//public static Permissions unused = (Permissions)1073741824;		// 0x40000000
-	//public static Permissions unused = (Permissions)2147483648;		// 0x80000000
+	//public static Permissions unused = (Permissions)			0x40000000;
+	//public static Permissions unused = (Permissions)			0x80000000;
 	#endregion
 	public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
