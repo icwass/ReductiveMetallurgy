@@ -219,6 +219,8 @@ public class MainClass : QuintessentialMod
 		Sound projectionActivate = class_238.field_1991.field_1844;
 		Sound purificationActivate = class_238.field_1991.field_1845;
 
+		
+
 		List<Part> ravariWheels = new List<Part>();
 		foreach (Part ravariWheel in partList.Where(x => x.method_1159() == oldWheel.oldRavari))
 		{
@@ -273,6 +275,19 @@ public class MainClass : QuintessentialMod
 
 			if (partType == GlyphProjection)
 			{
+				/*
+				//some test stuff
+				AtomReference atomTest = default(AtomReference);
+
+				if (Wheel.maybeFindRavariWheelAtom(sim_self, part, new HexIndex(2, 0)).method_99(out atomTest))
+				{
+					changeAtomTypeOfAtom(atomTest, atomTest.field_2280.field_2297.method_1087());
+					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
+					atomTest.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomTest.field_2280, projectAtomAnimation, 30f);
+				}
+				*/
+
+
 				// check if we need to project a ravariWheel, or if we need to project by direct-rejection from a ravariWheel
 				HexIndex hexInput = new HexIndex(0, 0);
 				HexIndex hexProject = new HexIndex(1, 0);

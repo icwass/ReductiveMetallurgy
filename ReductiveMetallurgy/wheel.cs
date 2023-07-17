@@ -12,7 +12,6 @@ using System.Reflection;
 namespace ReductiveMetallurgy;
 
 using PartType = class_139;
-using AtomTypes = class_175;
 using PartTypes = class_191;
 using Texture = class_256;
 
@@ -20,16 +19,18 @@ public static class Wheel
 {
 	public static PartType Ravari, RavariSpent;
 
-	static Sound RavariSpend;
-	static Texture[] RavariSeparateAnimation, RavariFlyAnimation;
-	static class_126 atomCageBrokenLighting, atomCageBrokenLightingAlt;
-	static class_126 atomCageLighting => class_238.field_1989.field_90.field_232;
-	static Texture[] projectAtomAnimation => class_238.field_1989.field_81.field_614;
-	static PartType Berlo => PartTypes.field_1771;
-	static HexRotation[] HexArmRotations => PartTypes.field_1767.field_1534;
 	const float sixtyDegrees = 60f * (float)Math.PI / 180f;
 	const string RavariWheelAtomsField = "ReductiveMetallurgy_RavariWheelAtoms";
 	const string RavariWheelSpentField = "ReductiveMetallurgy_RavariWheelSpent";
+
+	static Sound RavariSpend;
+	static Texture[] RavariSeparateAnimation;
+	static Texture[] RavariFlyAnimation;
+	static class_126 atomCageBrokenLighting;
+	static class_126 atomCageBrokenLightingAlt;
+	static class_126 atomCageLighting => class_238.field_1989.field_90.field_232;
+	static PartType Berlo => PartTypes.field_1771;
+	static HexRotation[] HexArmRotations => PartTypes.field_1767.field_1534;
 	static Molecule RavariMolecule()
 	{
 		Molecule molecule = new Molecule();
@@ -84,32 +85,27 @@ public static class Wheel
 		if (part.method_1159() != Ravari) return;
 		PartSimState partSimState = seb_self.method_507().method_481(part);
 		if (GetRavariWheelSpent(partSimState)) return;
-		//HexIndex partHexIndex = partSimState.field_2724;
-		//var partRotation = partSimState.field_2726;
-		Molecule ravariAtoms = GetRavariWheelAtoms(partSimState);//.method_1115(partRotation);//.method_1117(partHexIndex)
-		class_236 class236 = seb_self.method_1989(part, pos);
 
-		Editor.method_925(ravariAtoms, class236.field_1984, new HexIndex(0,0), class236.field_1985, 1f, 1f, 1f, false, seb_self);
+		class_236 class236 = seb_self.method_1989(part, pos);
+		Editor.method_925(GetRavariWheelAtoms(partSimState), class236.field_1984, new HexIndex(0,0), class236.field_1985, 1f, 1f, 1f, false, seb_self);
 	}
 	public static void spendRavariWheel(Sim sim_self, Part part)
 	{
 		if (part.method_1159() != Ravari) return;
-
 		var sim_dyn = new DynamicData(sim_self);
 		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
 		PartSimState partSimState = SEB.method_507().method_481(part);
 		if (GetRavariWheelSpent(partSimState)) return;
 
-		SetRavariWheelSpent(partSimState, true);
+		SetRavariWheelData(partSimState, RavariWheelSpentField, true);
 
 		// add atoms to the board
-		Molecule ravariAtoms = GetRavariWheelAtoms(partSimState);
 		var hexIndex = partSimState.field_2724;
 		var rotation = partSimState.field_2726;
 		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
 		var conduitMoleculeList = sim_dyn.Get<List<Molecule>>("field_3828");
 
-		foreach (var kvp in ravariAtoms.method_1100())
+		foreach (var kvp in GetRavariWheelAtoms(partSimState).method_1100())
 		{
 			var hex = kvp.Key;
 			var atom = kvp.Value;
@@ -119,38 +115,48 @@ public static class Wheel
 			conduitMoleculeList.Add(molecule);
 		}
 
+		// play sound effect
 		Sound simulationStop = class_238.field_1991.field_1863;
 		float volumeFactor = SEB.method_506();
 		simulationStop.method_28(0.75f * volumeFactor);
 		RavariSpend.method_28(1f * volumeFactor);
 
-		//draw separation animations
+		// draw separation animations
 		foreach (var hex in HexIndex.AdjacentOffsets)
 		{
-			var hex2 = hexIndex + hex;
-			var hex2_pos = class_187.field_1742.method_492(hex2);
-			Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hexIndex), hex2_pos, 0.67f);
-			float angle = class_187.field_1742.method_492(hex2 - hexIndex).Angle();
-			var vector2_5 = class_187.field_1742.method_492(hex2 - hexIndex);
-			class_228 class228_1 = new class_228(SEB, (enum_7)1, hex2_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle);
-			SEB.field_3936.Add(class228_1);
-			class_228 class228_2 = new class_228(SEB, (enum_7)1, vector2_6, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle);
-			SEB.field_3936.Add(class228_2);
+			var hex_pos = class_187.field_1742.method_492(hexIndex + hex);
+			Vector2 vec = class_162.method_413(class_187.field_1742.method_492(hexIndex), hex_pos, 0.67f);
+			float angle = class_187.field_1742.method_492(hex).Angle();
+			SEB.field_3936.Add(new class_228(SEB, (enum_7)1, hex_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle));
+			SEB.field_3936.Add(new class_228(SEB, (enum_7)1, vec, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle));
 		}
 	}
 
+	public static Maybe<AtomReference> maybeFindRavariWheelAtom(Sim sim_self, Part part, HexIndex offset)
+	{
+		var sim_dyn = new DynamicData(sim_self);
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+		var solution = sim_dyn.Get<SolutionEditorBase>("field_3818").method_502();
+		var partList = solution.field_3919;
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
 
+		HexIndex key = part.method_1184(offset);
+		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
+		{
+			var hexKey = part.method_1184(offset);
+			var partSimState = partSimStates[ravari];
+			Molecule ravariAtoms = GetRavariWheelAtoms(partSimState);
+			var hexIndex = partSimState.field_2724;
+			var rotation = partSimState.field_2726;
 
-
-
-
-
-
-
-
-
-
-
+			Atom atom;
+			if (ravariAtoms.method_1100().TryGetValue((key - hexIndex).Rotated(rotation.Negative()), out atom))
+			{
+				return (Maybe<AtomReference>)new AtomReference(ravariAtoms, key, atom.field_2275, atom, true);
+			}
+		}
+		return (Maybe<AtomReference>)struct_18.field_1431;
+	}
 
 	private static bool ContentLoaded = false;
 	public static void LoadContent()
@@ -174,7 +180,7 @@ public static class Wheel
 			/*Icon*/field_1547 = class_235.method_615(iconpath),
 			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
 			/*Permissions*/field_1551 = API.perm_ravari,
-			/*Only One Allowed?*/field_1552 = false, /////////////////////////////////////////////////////////////////////////////////////change back to true later
+			/*Only One Allowed?*/field_1552 = true,
 		};
 		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType());
 
@@ -213,51 +219,24 @@ public static class Wheel
 	}
 
 	#region /*DynamicData access functions*/
-	private static void SetRavariWheelAtoms(PartSimState state, Molecule newAtoms)
+	private static void SetRavariWheelData<T>(PartSimState state, string field, T data) => new DynamicData(state).Set(field, data);
+	private static T GetRavariWheelData<T>(PartSimState state, string field, T initial)
 	{
 		var state_dyn = new DynamicData(state);
-		state_dyn.Set(RavariWheelAtomsField, newAtoms);
-	}
+		var data = state_dyn.Get(field);
 
-	private static Molecule GetRavariWheelAtoms(PartSimState state)
-	{
-		var state_dyn = new DynamicData(state);
-		var atomsOb = state_dyn.Get(RavariWheelAtomsField);
-		Molecule atoms;
-		if (atomsOb == null)
+		if (data == null)
 		{
-			atoms = RavariMolecule();
-			SetRavariWheelAtoms(state, atoms);
+			SetRavariWheelData(state, field, initial);
+			return initial;
 		}
 		else
 		{
-			atoms = (Molecule)atomsOb;
+			return (T)data;
 		}
-		return atoms;
 	}
-
-	private static void SetRavariWheelSpent(PartSimState state, bool isSpent)
-	{
-		var state_dyn = new DynamicData(state);
-		state_dyn.Set(RavariWheelSpentField, isSpent);
-	}
-
-	private static bool GetRavariWheelSpent(PartSimState state)
-	{
-		var state_dyn = new DynamicData(state);
-		var isSpentOb = state_dyn.Get(RavariWheelSpentField);
-		bool isSpent;
-		if (isSpentOb == null)
-		{
-			isSpent = false;
-			SetRavariWheelSpent(state, isSpent);
-		}
-		else
-		{
-			isSpent = (bool)isSpentOb;
-		}
-		return isSpent;
-	}
+	private static bool GetRavariWheelSpent(PartSimState state) => GetRavariWheelData(state, RavariWheelSpentField, false);
+	private static Molecule GetRavariWheelAtoms(PartSimState state) => GetRavariWheelData(state, RavariWheelAtomsField, RavariMolecule());
 	#endregion
 
 
@@ -318,227 +297,5 @@ public static class Wheel
 			RavariSpend.field_4062 = false;
 		}
 		On.class_201.method_540 += Method_540;
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	public struct MetalWheel
-	{
-		// APIs ////////////////////
-		public bool isSpent => spent;
-		public bool canProject(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, onlyCheck);
-		public bool canReject(HexRotation rot) => tryProjectionOrRejection(rot, isRejection, onlyCheck);
-		public void project(HexRotation rot) => tryProjectionOrRejection(rot, isProjection, modifyData);
-		public void reject(HexRotation rot) => tryProjectionOrRejection(rot, isRejection, modifyData);
-		public void clearProjectionsAndRejections()
-		{
-			projections = new bool[6] { false, false, false, false, false, false };
-			rejections = new bool[6] { false, false, false, false, false, false };
-			savePackedWheel();
-		}
-		public void spendWheel(Sim sim_self)
-		{
-			if (spent) return;
-			var sim_dyn = new DynamicData(sim_self);
-			var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
-			var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
-			var conduitMoleculeList = sim_dyn.Get<List<Molecule>>("field_3828");
-
-			int turns = partSimState.field_2726.GetNumberOfTurns() % 6;
-			for (int i = 0; i < 6; i++)
-			{
-				var hex = hexes[i];
-				var metal = metalIDs[wheel[(i - turns + 6) % 6]];
-				//spawnAtomAtHex
-				Molecule molecule = new Molecule();
-				molecule.method_1105(new Atom(metal), partSimState.field_2724 + hex);
-				moleculeList.Add(molecule);
-				conduitMoleculeList.Add(molecule);
-			}
-			spent = true;
-			savePackedWheel();
-
-			Sound simulationStop = class_238.field_1991.field_1863;
-			float volumeFactor = SEB.method_506();
-			simulationStop.method_28(0.75f * volumeFactor);
-			RavariSpend.method_28(1f * volumeFactor);
-
-			//draw separation animations
-			foreach (var hex in hexes)
-			{
-				var hex1 = partSimState.field_2724;
-				var hex2 = hex1 + hex;
-				var hex2_pos = class_187.field_1742.method_492(hex2);
-				Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hex1), hex2_pos, 0.67f);
-				float angle = class_187.field_1742.method_492(hex2 - hex1).Angle();
-				var vector2_5 = class_187.field_1742.method_492(hex2 - hex1);
-				class_228 class228_1 = new class_228(SEB, (enum_7)1, hex2_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle);
-				SEB.field_3936.Add(class228_1);
-				class_228 class228_2 = new class_228(SEB, (enum_7)1, vector2_6, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle);
-				SEB.field_3936.Add(class228_2);
-			}
-		}
-		public void getDrawData(out HexIndex[] Hexes, out Dictionary<HexIndex, AtomType> BaseAtoms, out Dictionary<HexIndex, AtomType> TransmutationAtoms, out bool isSpent)
-		{
-			Hexes = hexes;
-			isSpent = spent;
-			BaseAtoms = new Dictionary<HexIndex, AtomType>();
-			TransmutationAtoms = new Dictionary<HexIndex, AtomType>();
-			if (spent) return;
-
-			Hexes = hexes;
-			for (int i = 0; i < 6; i++)
-			{
-				int metal = wheel[i];
-				BaseAtoms.Add(hexes[i], metalIDs[metal]);
-				if (projections[i]) metal--;
-				if (rejections[i]) metal++;
-				TransmutationAtoms.Add(hexes[i], metalIDs[metal]);
-			}
-		}
-		public MetalWheel(PartSimState _partSimState)
-		{
-			partSimState = _partSimState;
-			int packedWheel = partSimState.field_2730;
-			spent = packedWheel < 0;
-			// starting configuration
-			wheel = new int[6] { 2, 1, 6, 5, 4, 3 };
-			projections = new bool[6] { false, false, false, false, false, false };
-			rejections = new bool[6] { false, false, false, false, false, false };
-			if (packedWheel == 0) //save the starting configuration
-			{
-				savePackedWheel();
-			}
-			else // load the existing configuration
-			{
-				for (int i = 5; i >= 0; i--)
-				{
-					//
-					wheel[i] = packedWheel & metalMask;
-					projections[i] = (packedWheel & projectionMask) == projectionMask;
-					rejections[i] = (packedWheel & rejectionMask) == rejectionMask;
-					packedWheel >>= shift;
-				}
-			}
-		}
-
-		// internal ////////////////////
-		private bool tryProjectionOrRejection(HexRotation rot, bool isProjecting, bool isModifyingData)
-		{
-			if (spent) return false;
-			HexRotation netRot = rot - partSimState.field_2726;
-			var index = (netRot.GetNumberOfTurns() % 6 + 6) % 6;
-			bool flag = isProjecting ? wheel[index] < 6 : wheel[index] > 1;
-			if (flag && isModifyingData)
-			{
-				projections[index] = projections[index] || isProjecting;
-				rejections[index] = rejections[index] || !isProjecting;
-				wheel[index] += isProjecting ? 1 : -1;
-				savePackedWheel();
-			}
-			return flag;
-		}
-		private void savePackedWheel()
-		{
-			int packedWheel = 0;
-			if (spent)
-			{
-				packedWheel = int.MinValue;
-			}
-			else
-			{
-				for (int i = 0; i < 6; i++)
-				{
-					packedWheel <<= shift;
-					if (rejections[i]) packedWheel += rejectionMask;
-					if (projections[i]) packedWheel += projectionMask;
-					packedWheel += wheel[i];
-				}
-			}
-			partSimState.field_2730 = packedWheel;
-		}
-
-		// data ////////////////////
-		private int[] wheel;
-		private bool[] projections;
-		private bool[] rejections;
-		private bool spent;
-		private PartSimState partSimState;
-
-		const bool isProjection = true;
-		const bool isRejection = false;
-		const bool modifyData = true;
-		const bool onlyCheck = false;
-		const int metalMask = 0b00111;
-		const int projectionMask = 0b01000;
-		const int rejectionMask = 0b10000;
-		const int shift = 5;
-		readonly static HexIndex[] hexes = new HexIndex[6] {
-			new HexIndex(1, 0),
-			new HexIndex(0, 1),
-			new HexIndex(-1, 1),
-			new HexIndex(-1, 0),
-			new HexIndex(0, -1),
-			new HexIndex(1, -1)
-		};
-		readonly static AtomType[] metalIDs = new AtomType[8] {
-			API.leadAtomType(), // array filler
-			API.leadAtomType(),
-			API.tinAtomType(),
-			API.ironAtomType(),
-			API.copperAtomType(),
-			API.silverAtomType(),
-			API.goldAtomType(),
-			API.goldAtomType() // array filler
-		};
-		//==== DATA LAYOUT ====//
-		// 32 bits total:
-		//_______________________________________________________________________________________
-		//| Header |   (0)          (1)          (2)          (3)          (4)          (5)      |
-		//|  [][]  | [][][][][] , [][][][][] , [][][][][] , [][][][][] , [][][][][] , [][][][][] |
-		//|________|_____________________________________________________________________________|
-		//
-		// Header Values:
-		// [0][X] : Wheel is normal
-		// [1][X] : Wheel is spent
-		//
-		// (0) => MetalInt at R0
-		// (1) => MetalInt at R60
-		// (2) => MetalInt at R120
-		// (3) => MetalInt at R180
-		// (4) => MetalInt at R240
-		// (5) => MetalInt at R300
-		//
-		// (x) MetalInt format:
-		// Rejection bit : Projection bit : Metal ID
-		//       []      :       []       :  [][][]
 	}
 }
