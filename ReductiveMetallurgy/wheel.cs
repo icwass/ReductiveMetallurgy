@@ -19,41 +19,41 @@ using Texture = class_256;
 public static class Wheel
 {
 	public static PartType Ravari, RavariSpent;
-	public static Sound RavariSpend;
-	public static Texture[] RavariSeparateAnimation;
-	public static Texture[] RavariFlyAnimation;
 
-	public static void drawSelectionGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
+	static Sound RavariSpend;
+	static Texture[] RavariSeparateAnimation, RavariFlyAnimation;
+	static class_126 atomCageBrokenLighting, atomCageBrokenLightingAlt;
+	static class_126 atomCageLighting => class_238.field_1989.field_90.field_232;
+	static Texture[] projectAtomAnimation => class_238.field_1989.field_81.field_614;
+	static PartType Berlo => PartTypes.field_1771;
+	static HexRotation[] HexArmRotations => PartTypes.field_1767.field_1534;
+	const float sixtyDegrees = 60f * (float)Math.PI / 180f;
+	const string RavariWheelAtomsField = "ReductiveMetallurgy_RavariWheelAtoms";
+	const string RavariWheelSpentField = "ReductiveMetallurgy_RavariWheelSpent";
+	static Molecule RavariMolecule()
 	{
-		var cageGlowTexture = class_238.field_1989.field_97.field_367; // textures/select/cage
-		int armLength = 1; // part.method_1165()
-		var armRotations = PartTypes.field_1767.field_1534;
-		class_236 class236 = seb_self.method_1989(part, pos);
-		Color color = Color.White.WithAlpha(alpha);
-
-		API.PrivateMethod<SolutionEditorBase>("method_2006").Invoke(seb_self, new object[] { armLength, armRotations, class236, color });
-		for (int index = 0; index < 6; ++index)
-		{
-			float num = index * 60 * ((float)Math.PI / 180f);
-			API.PrivateMethod<SolutionEditorBase>("method_2016").Invoke(seb_self, new object[] { cageGlowTexture, color, class236.field_1984, class236.field_1985 + num });
-		}
+		Molecule molecule = new Molecule();
+		molecule.method_1105(new Atom(API.leadAtomType()), new HexIndex(0, 1));
+		molecule.method_1105(new Atom(API.tinAtomType()), new HexIndex(1, 0));
+		molecule.method_1105(new Atom(API.ironAtomType()), new HexIndex(1, -1));
+		molecule.method_1105(new Atom(API.copperAtomType()), new HexIndex(0, -1));
+		molecule.method_1105(new Atom(API.silverAtomType()), new HexIndex(-1, 0));
+		molecule.method_1105(new Atom(API.goldAtomType()), new HexIndex(-1, 1));
+		return molecule;
 	}
-
+	// ============================= //
+	// public methods called by main
+	public static void LoadMirrorRules() => FTSIGCTU.MirrorTool.addRule(Ravari, FTSIGCTU.MirrorTool.mirrorVanBerlo);
 	public static void manageSpentRavaris(Sim sim_self, Action action)
 	{
-		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
-		var solution = SEB.method_502();
-		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-
+		var SEB = new DynamicData(sim_self).Get<SolutionEditorBase>("field_3818");
+		var partList = SEB.method_502().field_3919;
 		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
 		{
-			var metalWheel = new MetalWheel(partSimStates[ravari]);
-			if (metalWheel.isSpent)
+			PartSimState partSimState = SEB.method_507().method_481(ravari);
+			if (GetRavariWheelSpent(partSimState))
 			{
-				var ravari_dyn = new DynamicData(ravari);
-				ravari_dyn.Set("field_2691", RavariSpent);
+				new DynamicData(ravari).Set("field_2691", RavariSpent);
 			}
 		}
 		//=====//
@@ -61,10 +61,294 @@ public static class Wheel
 		//=====//
 		foreach (var ravari in partList.Where(x => x.method_1159() == RavariSpent))
 		{
-			var ravari_dyn = new DynamicData(ravari);
-			ravari_dyn.Set("field_2691", Ravari);
+			new DynamicData(ravari).Set("field_2691", Ravari);
 		}
 	}
+	public static void drawSelectionGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
+	{
+		var cageSelectGlowTexture = class_238.field_1989.field_97.field_367;
+		int armLength = 1; // part.method_1165()
+		class_236 class236 = seb_self.method_1989(part, pos);
+		Color color = Color.White.WithAlpha(alpha);
+
+		API.PrivateMethod<SolutionEditorBase>("method_2006").Invoke(seb_self, new object[] { armLength, HexArmRotations, class236, color });
+		for (int index = 0; index < 6; ++index)
+		{
+			float num = index * sixtyDegrees;
+			API.PrivateMethod<SolutionEditorBase>("method_2016").Invoke(seb_self, new object[] { cageSelectGlowTexture, color, class236.field_1984, class236.field_1985 + num });
+		}
+	}
+
+	public static void drawRavariAtoms(SolutionEditorBase seb_self, Part part, Vector2 pos)
+	{
+		if (part.method_1159() != Ravari) return;
+		PartSimState partSimState = seb_self.method_507().method_481(part);
+		if (GetRavariWheelSpent(partSimState)) return;
+		//HexIndex partHexIndex = partSimState.field_2724;
+		//var partRotation = partSimState.field_2726;
+		Molecule ravariAtoms = GetRavariWheelAtoms(partSimState);//.method_1115(partRotation);//.method_1117(partHexIndex)
+		class_236 class236 = seb_self.method_1989(part, pos);
+
+		Editor.method_925(ravariAtoms, class236.field_1984, new HexIndex(0,0), class236.field_1985, 1f, 1f, 1f, false, seb_self);
+	}
+	public static void spendRavariWheel(Sim sim_self, Part part)
+	{
+		if (part.method_1159() != Ravari) return;
+
+		var sim_dyn = new DynamicData(sim_self);
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+		PartSimState partSimState = SEB.method_507().method_481(part);
+		if (GetRavariWheelSpent(partSimState)) return;
+
+		SetRavariWheelSpent(partSimState, true);
+
+		// add atoms to the board
+		Molecule ravariAtoms = GetRavariWheelAtoms(partSimState);
+		var hexIndex = partSimState.field_2724;
+		var rotation = partSimState.field_2726;
+		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
+		var conduitMoleculeList = sim_dyn.Get<List<Molecule>>("field_3828");
+
+		foreach (var kvp in ravariAtoms.method_1100())
+		{
+			var hex = kvp.Key;
+			var atom = kvp.Value;
+			Molecule molecule = new Molecule();
+			molecule.method_1105(atom.method_804(), hexIndex + hex.Rotated(rotation));
+			moleculeList.Add(molecule);
+			conduitMoleculeList.Add(molecule);
+		}
+
+		Sound simulationStop = class_238.field_1991.field_1863;
+		float volumeFactor = SEB.method_506();
+		simulationStop.method_28(0.75f * volumeFactor);
+		RavariSpend.method_28(1f * volumeFactor);
+
+		//draw separation animations
+		foreach (var hex in HexIndex.AdjacentOffsets)
+		{
+			var hex2 = hexIndex + hex;
+			var hex2_pos = class_187.field_1742.method_492(hex2);
+			Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hexIndex), hex2_pos, 0.67f);
+			float angle = class_187.field_1742.method_492(hex2 - hexIndex).Angle();
+			var vector2_5 = class_187.field_1742.method_492(hex2 - hexIndex);
+			class_228 class228_1 = new class_228(SEB, (enum_7)1, hex2_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle);
+			SEB.field_3936.Add(class228_1);
+			class_228 class228_2 = new class_228(SEB, (enum_7)1, vector2_6, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle);
+			SEB.field_3936.Add(class228_2);
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static bool ContentLoaded = false;
+	public static void LoadContent()
+	{
+		if (ContentLoaded) return;
+		ContentLoaded = true;
+		LoadSoundResources();
+		LoadTextureResources();
+		//=========================//
+		string iconpath = "reductiveMetallurgy/textures/parts/icons/verrin";
+		Ravari = new PartType()
+		{
+			/*ID*/field_1528 = "wheel-verrin-new",
+			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
+			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged. The wheel also has a drop-mechanism that can release the metals.", string.Empty),
+			/*Cost*/field_1531 = 30,
+			/*Type*/field_1532 = (enum_2) 1,
+			/*Programmable?*/field_1533 = true,
+			/*Force-rotatable*/field_1536 = true,
+			/*Berlo Atoms*/field_1544 = new Dictionary<HexIndex, AtomType>(),
+			/*Icon*/field_1547 = class_235.method_615(iconpath),
+			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
+			/*Permissions*/field_1551 = API.perm_ravari,
+			/*Only One Allowed?*/field_1552 = false, /////////////////////////////////////////////////////////////////////////////////////change back to true later
+		};
+		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType());
+
+		RavariSpent = new PartType()
+		{
+			/*Type*/field_1532 = (enum_2) 1,
+			/*Programmable?*/field_1533 = true,
+		};
+
+		QApi.AddPartTypeToPanel(Ravari, Berlo);
+
+		QApi.AddPartType(Ravari, (part, pos, editor, renderer) =>
+		{
+			// draw arm stubs
+			class_236 class236 = editor.method_1989(part, pos);
+			API.PrivateMethod<SolutionEditorBase>("method_2005").Invoke(editor, new object[] { part.method_1165(), HexArmRotations, class236 });
+
+			// draw atoms, if the simulation is stopped
+			if (editor.method_503() == enum_128.Stopped)
+			{
+				drawRavariAtoms(editor, part, pos);
+			}
+
+			// draw cages
+			PartSimState partSimState = editor.method_507().method_481(part);
+			bool isSpent = GetRavariWheelSpent(partSimState);
+			for (int i = 0; i < 6; i++)
+			{
+				float radians = renderer.field_1798 + (i * sixtyDegrees);
+				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
+				var atomcages = atomCageLighting;
+				if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;
+				API.PrivateMethod<SolutionEditorBase>("method_2003").Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
+			}
+		});
+	}
+
+	#region /*DynamicData access functions*/
+	private static void SetRavariWheelAtoms(PartSimState state, Molecule newAtoms)
+	{
+		var state_dyn = new DynamicData(state);
+		state_dyn.Set(RavariWheelAtomsField, newAtoms);
+	}
+
+	private static Molecule GetRavariWheelAtoms(PartSimState state)
+	{
+		var state_dyn = new DynamicData(state);
+		var atomsOb = state_dyn.Get(RavariWheelAtomsField);
+		Molecule atoms;
+		if (atomsOb == null)
+		{
+			atoms = RavariMolecule();
+			SetRavariWheelAtoms(state, atoms);
+		}
+		else
+		{
+			atoms = (Molecule)atomsOb;
+		}
+		return atoms;
+	}
+
+	private static void SetRavariWheelSpent(PartSimState state, bool isSpent)
+	{
+		var state_dyn = new DynamicData(state);
+		state_dyn.Set(RavariWheelSpentField, isSpent);
+	}
+
+	private static bool GetRavariWheelSpent(PartSimState state)
+	{
+		var state_dyn = new DynamicData(state);
+		var isSpentOb = state_dyn.Get(RavariWheelSpentField);
+		bool isSpent;
+		if (isSpentOb == null)
+		{
+			isSpent = false;
+			SetRavariWheelSpent(state, isSpent);
+		}
+		else
+		{
+			isSpent = (bool)isSpentOb;
+		}
+		return isSpent;
+	}
+	#endregion
+
+
+
+
+
+
+
+	// private methods
+	private static void LoadTextureResources()
+	{
+		string dir = "reductiveMetallurgy/textures/parts/";
+		Texture[] fetchTextureArray(int length, string path)
+		{
+			var ret = new Texture[length];
+			for (int i = 0; i < ret.Length; i++)
+			{
+				ret[i] = class_235.method_615(dir + path + (i + 1).ToString("0000"));
+			}
+			return ret;
+		}
+		RavariSeparateAnimation = fetchTextureArray(28, "ravari_separate.array/separate_");
+		RavariFlyAnimation = fetchTextureArray(32, "atom_cage_fly.array/fly_");
+
+		class_126 fetchClass126(string path) => new class_126(
+			class_235.method_615(path + "left"),
+			class_235.method_615(path + "right"),
+			class_235.method_615(path + "bottom"),
+			class_235.method_615(path + "top")
+		);
+		atomCageBrokenLighting = fetchClass126(dir + "atom_cage_broken.lighting/");
+		atomCageBrokenLightingAlt = fetchClass126(dir + "atom_cage_broken_alt.lighting/");
+	}
+	private static void LoadSoundResources()
+	{
+		//load the custom sound, and hook into stuff to make it work right
+		string path = "Content/reductiveMetallurgy/sounds/ravari_release.wav";
+		foreach (var dir in QuintessentialLoader.ModContentDirectories)
+		{
+			string filepath = Path.Combine(dir, path);
+			if (File.Exists(filepath))
+			{
+				RavariSpend = new Sound()
+				{
+					field_4060 = Path.GetFileNameWithoutExtension(filepath),
+					field_4061 = class_158.method_375(filepath)
+				};
+				break;
+			}
+		}
+		var field = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
+		var dictionary = (Dictionary<string, float>)field.GetValue(null);
+		dictionary.Add("ravari_release", 0.15f);
+
+		void Method_540(On.class_201.orig_method_540 orig, class_201 class201_self)
+		{
+			orig(class201_self);
+			RavariSpend.field_4062 = false;
+		}
+		On.class_201.method_540 += Method_540;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	public struct MetalWheel
 	{
@@ -256,186 +540,5 @@ public static class Wheel
 		// (x) MetalInt format:
 		// Rejection bit : Projection bit : Metal ID
 		//       []      :       []       :  [][][]
-	}
-
-	private static bool ContentLoaded = false;
-	public static void LoadContent()
-	{
-		if (ContentLoaded) return;
-		ContentLoaded = true;
-
-		string path;
-		//=========================//
-		//load the sound, and hook into stuff to make it work right
-		path = "Content/reductiveMetallurgy/sounds/ravari_release.wav";
-		foreach (var dir in QuintessentialLoader.ModContentDirectories)
-		{
-			string filepath = Path.Combine(dir, path);
-			if (File.Exists(filepath))
-			{
-				RavariSpend = new Sound()
-				{
-					field_4060 = Path.GetFileNameWithoutExtension(filepath),
-					field_4061 = class_158.method_375(filepath)
-				};
-				break;
-			}
-		}
-		var field = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
-		var dictionary = (Dictionary<string,float>) field.GetValue(null);
-		dictionary.Add("ravari_release", 0.15f);
-
-		void Method_540(On.class_201.orig_method_540 orig, class_201 class201_self)
-		{
-			orig(class201_self);
-			RavariSpend.field_4062 = false;
-		}
-		On.class_201.method_540 += Method_540;
-		//=========================//
-
-		/*
-		Texture blankTexture = class_238.field_1989.field_71;
-		AtomType emptyAtom = new AtomType()
-		{
-			field_2284 = string.Empty, // non-local name
-			field_2285 = class_134.method_254(string.Empty), // atomic name
-			field_2287 = AtomTypes.field_1689.field_2287, // atom symbol
-			field_2288 = blankTexture, // shadow
-			field_2290 = new class_106()
-			{
-				field_994 = class_238.field_1989.field_81.field_596,//salt_diffuse
-				field_995 = class_238.field_1989.field_81.field_597//salt_shade
-			}
-		};
-		var tempAtom = emptyAtom;
-		*/
-		var tempAtom = API.quicksilverAtomType();
-
-		RavariSeparateAnimation = new Texture[28];
-		path = "reductiveMetallurgy/textures/parts/ravari_separate.array/separate_";
-		for (int i = 0; i < RavariSeparateAnimation.Length; i++)
-		{
-			RavariSeparateAnimation[i] = class_235.method_615(path + (i+1).ToString("0000"));
-		}
-
-		RavariFlyAnimation = new Texture[32];
-		path = "reductiveMetallurgy/textures/parts/atom_cage_fly.array/fly_";
-		for (int i = 0; i < RavariFlyAnimation.Length; i++)
-		{
-			RavariFlyAnimation[i] = class_235.method_615(path + (i+1).ToString("0000"));
-		}
-
-		path = "reductiveMetallurgy/textures/parts/icons/";
-		Ravari = new PartType()
-		{
-			/*ID*/field_1528 = "wheel-verrin",
-			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
-			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged. The wheel also has a release mechanism.", string.Empty),
-			/*Cost*/field_1531 = 30,
-			/*Type*/field_1532 = (enum_2) 1,
-			/*Programmable?*/field_1533 = true,
-			/*Force-rotatable*/field_1536 = true,
-			/*Berlo Atoms*/field_1544 = new Dictionary<HexIndex, AtomType>()
-			{
-				{new HexIndex(0, 1),  tempAtom},
-				{new HexIndex(1, 0),  tempAtom},
-				{new HexIndex(1, -1), tempAtom},
-				{new HexIndex(0, -1), tempAtom},
-				{new HexIndex(-1, 0), tempAtom},
-				{new HexIndex(-1, 1), tempAtom},
-			},
-			/*Icon*/field_1547 = class_235.method_615(path + "verrin"),
-			/*Hover Icon*/field_1548 = class_235.method_615(path + "verrin_hover"),
-			/*Permissions*/field_1551 = API.perm_ravari,
-			/*Only One Allowed?*/field_1552 = true,
-		};
-
-		RavariSpent = new PartType()
-		{
-			/*Type*/field_1532 = (enum_2) 1,
-			/*Programmable?*/field_1533 = true,
-		};
-
-		var berlo = PartTypes.field_1771;
-		QApi.AddPartTypeToPanel(Ravari, berlo);
-
-		path = "reductiveMetallurgy/textures/parts/atom_cage_broken.lighting/";
-
-		var atomCageBrokenLighting = new class_126(
-			class_235.method_615(path + "left"),
-			class_235.method_615(path + "right"),
-			class_235.method_615(path + "bottom"),
-			class_235.method_615(path + "top")
-		);
-		path = "reductiveMetallurgy/textures/parts/atom_cage_broken_alt.lighting/";
-		var atomCageBrokenLightingAlt = new class_126(
-			class_235.method_615(path + "left"),
-			class_235.method_615(path + "right"),
-			class_235.method_615(path + "bottom"),
-			class_235.method_615(path + "top")
-		);
-
-		// fetch vanilla textures
-		var atomCageLighting = class_238.field_1989.field_90.field_232;
-		var projectAtomAnimation = class_238.field_1989.field_81.field_614;
-
-		QApi.AddPartType(Ravari, (part, pos, editor, renderer) =>
-		{
-			class_236 class236 = editor.method_1989(part, pos);
-
-			PartSimState partSimState = editor.method_507().method_481(part);
-			var simTime = editor.method_504();
-
-			//draw arm stubs
-			var hexArmRotations = PartTypes.field_1767.field_1534;
-			API.PrivateMethod<SolutionEditorBase>("method_2005").Invoke(editor, new object[] { part.method_1165(), hexArmRotations, class236 });
-
-			// draw arms and their contents, if any
-			int frameIndex = class_162.method_404((int)(simTime * projectAtomAnimation.Length), 0, projectAtomAnimation.Length);
-			MetalWheel metalWheel = new MetalWheel(partSimState);
-			HexIndex[] hexes;
-			bool isSpent;
-			Dictionary<HexIndex, AtomType> baseAtoms;
-			Dictionary<HexIndex, AtomType> transmutationAtoms;
-			metalWheel.getDrawData(out hexes, out baseAtoms, out transmutationAtoms, out isSpent);
-
-			for (int i = 0; i < hexes.Length; i++)
-			{
-				var hex = hexes[i];
-
-				if (!isSpent)
-				{
-					//draw atom
-					AtomType baseAtom = baseAtoms[hex];
-					AtomType transmutationAtom = transmutationAtoms[hex];
-
-					Vector2 vector2 = renderer.field_1797 + class_187.field_1742.method_492(hex).Rotated(renderer.field_1798);
-					float num1 = (Editor.method_922() - vector2).Angle() - 1.570796f;
-					if (frameIndex < projectAtomAnimation.Length && baseAtom != transmutationAtom)
-					{
-						Texture animationFrame = projectAtomAnimation[frameIndex];
-						Editor.method_927(frameIndex < 7 ? transmutationAtom : baseAtom, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
-						class_135.method_272(animationFrame, vector2 - animationFrame.method_690());
-					}
-					else
-					{
-						Editor.method_927(baseAtom, vector2, 1f, 1f, 1f, 1f, -21f, num1, null, null, false);
-					}
-				}
-
-				//draw cage
-				float num4 = i * 60 * (float)Math.PI / 180f;
-				float radians = renderer.field_1798 + num4;
-				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
-
-				var atomcages = atomCageLighting;
-				if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;
-				API.PrivateMethod<SolutionEditorBase>("method_2003").Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
-			}
-		});
-	}
-	public static void LoadMirrorRules()
-	{
-		FTSIGCTU.MirrorTool.addRule(Ravari, FTSIGCTU.MirrorTool.mirrorVanBerlo);
 	}
 }

@@ -1,4 +1,6 @@
-﻿using MonoMod.RuntimeDetour;
+﻿using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using Quintessential;
 using Quintessential.Settings;
@@ -65,6 +67,7 @@ public class MainClass : QuintessentialMod
 	public override void LoadPuzzleContent()
 	{
 		Glyphs.LoadContent();
+		oldWheel.LoadContent();
 		Wheel.LoadContent();
 
 		//------------------------- HOOKING -------------------------//
@@ -73,7 +76,34 @@ public class MainClass : QuintessentialMod
 		hook_Sim_method_1832 = new Hook(API.PrivateMethod<Sim>("method_1832"), OnSimMethod1832);
 		hook_Sim_method_1835 = new Hook(API.PrivateMethod<Sim>("method_1835"), OnSimMethod1835);
 		hook_Sim_method_1836 = new Hook(API.PrivateMethod<Sim>("method_1836"), OnSimMethod1836);
+
+		IL.SolutionEditorBase.method_1984 += drawRavariWheelAtoms;
 	}
+	public static void drawRavariWheelAtoms(ILContext il)
+	{
+		ILCursor cursor = new ILCursor(il);
+		// skip ahead to roughly where the method_2015 calls occur
+		cursor.Goto(658);
+
+		// jump ahead to just after the method_2015 for-loop
+		if (!cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Ldarga_S))) return;
+
+		// load the SolutionEditorBase self and the class423 local onto the stack so we can use it
+		// then run the new code
+		cursor.Emit(OpCodes.Ldarg_0);
+		cursor.Emit(OpCodes.Ldloc_0);
+		cursor.EmitDelegate<Action<SolutionEditorBase, SolutionEditorBase.class_423>>((seb_self, class423) =>
+		{
+			var partList = seb_self.method_502().field_3919;
+			foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+			{
+				Wheel.drawRavariAtoms(seb_self, ravari, class423.field_3959);
+			}
+
+		});
+	}
+
+
 
 	private delegate void orig_Sim_method_1828(Sim self);
 	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
@@ -84,10 +114,10 @@ public class MainClass : QuintessentialMod
 	{
 		var sim_dyn = new DynamicData(sim_self);
 		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == Wheel.Ravari))
+		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == oldWheel.oldRavari))
 		{
 			var partSimState = kvp.Value;
-			Wheel.MetalWheel metalWheel = new Wheel.MetalWheel(partSimState);
+			oldWheel.MetalWheel metalWheel = new oldWheel.MetalWheel(partSimState);
 			metalWheel.clearProjectionsAndRejections();
 		}
 
@@ -101,11 +131,11 @@ public class MainClass : QuintessentialMod
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool isConsumptionHalfstep)
 	{
 		My_Method_1832(sim_self, isConsumptionHalfstep);
-		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep));
+		oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep)));
 	}
 	//spent Ravari wheels need to have different collision behavior
-	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
-	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
+	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self)));
+	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self)));
 
 
 
@@ -119,14 +149,22 @@ public class MainClass : QuintessentialMod
 
 		var dropInstruction = class_169.field_1664;
 
-		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+		foreach (var ravari in partList.Where(x => x.method_1159() == oldWheel.oldRavari))
 		{
 			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
 			if (instructionType == dropInstruction)
 			{
 				var ravariState = partSimStates[ravari];
-				var metalWheel = new Wheel.MetalWheel(ravariState);
+				var metalWheel = new oldWheel.MetalWheel(ravariState);
 				metalWheel.spendWheel(sim_self);
+			}
+		}
+		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+		{
+			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
+			if (instructionType == dropInstruction)
+			{
+				Wheel.spendRavariWheel(sim_self, ravari);
 			}
 		}
 	}
@@ -182,7 +220,7 @@ public class MainClass : QuintessentialMod
 		Sound purificationActivate = class_238.field_1991.field_1845;
 
 		List<Part> ravariWheels = new List<Part>();
-		foreach (Part ravariWheel in partList.Where(x => x.method_1159() == Wheel.Ravari))
+		foreach (Part ravariWheel in partList.Where(x => x.method_1159() == oldWheel.oldRavari))
 		{
 			ravariWheels.Add(ravariWheel);
 		}
@@ -200,7 +238,7 @@ public class MainClass : QuintessentialMod
 					{new HexIndex(0, -1), HexRotation.R240},
 					{new HexIndex(1, -1), HexRotation.R300},
 				};
-			bool actionIsPossible(Wheel.MetalWheel metalWheel, HexRotation rot) => checkProjection ? metalWheel.canProject(rot) : metalWheel.canReject(rot);
+			bool actionIsPossible(oldWheel.MetalWheel metalWheel, HexRotation rot) => checkProjection ? metalWheel.canProject(rot) : metalWheel.canReject(rot);
 
 			foreach (var wheel in wheelList)
 			{
@@ -208,7 +246,7 @@ public class MainClass : QuintessentialMod
 				{
 					rot = dict[hex];
 					var wheelPartSimState = partSimStates[wheel];
-					var metalWheel = new Wheel.MetalWheel(wheelPartSimState);
+					var metalWheel = new oldWheel.MetalWheel(wheelPartSimState);
 					if ((wheelPartSimState.field_2724 + hex) == target && actionIsPossible(metalWheel,rot))
 					{
 						wheelResult = wheel;
@@ -280,7 +318,7 @@ public class MainClass : QuintessentialMod
 					}
 					else // foundDemotableRavari
 					{
-						var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
+						var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
 						metalWheel.reject(demotedRot);
 						//drawRavariFlash(hexInput);
 					}
@@ -294,7 +332,7 @@ public class MainClass : QuintessentialMod
 					}
 					else // foundPromotableRavari
 					{
-						var metalWheel = new Wheel.MetalWheel(partSimStates[promotedRavariWheel]);
+						var metalWheel = new oldWheel.MetalWheel(partSimStates[promotedRavariWheel]);
 						metalWheel.project(promotedRot);
 					}
 				}
@@ -339,7 +377,7 @@ public class MainClass : QuintessentialMod
 					}
 					else // foundDemotableRavari
 					{
-						var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
+						var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
 						metalWheel.reject(demotedRot);
 					}
 
@@ -353,7 +391,7 @@ public class MainClass : QuintessentialMod
 					}
 					else // foundPromotableRavari
 					{
-						var metalWheel = new Wheel.MetalWheel(partSimStates[promotedRavariWheel]);
+						var metalWheel = new oldWheel.MetalWheel(partSimStates[promotedRavariWheel]);
 						metalWheel.project(promotedRot);
 						//drawRavariFlash(hexOutput);
 					}
@@ -458,7 +496,7 @@ public class MainClass : QuintessentialMod
 								}
 								else // foundDemotableRavari
 								{
-									var metalWheel = new Wheel.MetalWheel(partSimStates[demotedRavariWheel]);
+									var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
 									metalWheel.reject(demotedRot);
 									//drawRavariFlash(hexQuicksilver);
 								}
@@ -558,7 +596,7 @@ public class MainClass : QuintessentialMod
 		{
 			Logger.Log("[ReductiveMetallurgy] Detected optional dependency 'FTSIGCTU' - adding mirror rules for parts.");
 			Glyphs.LoadMirrorRules();
-			Wheel.LoadMirrorRules();
+			oldWheel.LoadMirrorRules();
 		}
 		else
 		{
@@ -576,6 +614,10 @@ public class MainClass : QuintessentialMod
 		if (part.method_1159() == Wheel.Ravari)
 		{
 			Wheel.drawSelectionGlow(seb_self, part, pos, alpha);
+		}
+		else if(part.method_1159() == oldWheel.oldRavari)
+		{
+			oldWheel.drawSelectionGlow(seb_self, part, pos, alpha);
 		}
 
 		orig(seb_self, part, pos, alpha);
