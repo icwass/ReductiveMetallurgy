@@ -112,10 +112,10 @@ public static class oldWheel
 			{
 				var hex1 = partSimState.field_2724;
 				var hex2 = hex1 + hex;
-				var hex2_pos = class_187.field_1742.method_492(hex2);
-				Vector2 vector2_6 = class_162.method_413(class_187.field_1742.method_492(hex1), hex2_pos, 0.67f);
-				float angle = class_187.field_1742.method_492(hex2 - hex1).Angle();
-				var vector2_5 = class_187.field_1742.method_492(hex2 - hex1);
+				var hex2_pos = MainClass.hexGraphicalOffset(hex2);
+				Vector2 vector2_6 = class_162.method_413(MainClass.hexGraphicalOffset(hex1), hex2_pos, 0.67f);
+				float angle = MainClass.hexGraphicalOffset(hex2 - hex1).Angle();
+				var vector2_5 = MainClass.hexGraphicalOffset(hex2 - hex1);
 				class_228 class228_1 = new class_228(SEB, (enum_7)1, hex2_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle);
 				SEB.field_3936.Add(class228_1);
 				class_228 class228_2 = new class_228(SEB, (enum_7)1, vector2_6, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle);
@@ -325,7 +325,7 @@ public static class oldWheel
 		path = "reductiveMetallurgy/textures/parts/icons/";
 		oldRavari = new PartType()
 		{
-			/*ID*/field_1528 = "wheel-verrin",
+			/*ID*/field_1528 = "wheel-verrin-old",
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel (old)", string.Empty),
 			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged. The wheel also has a release mechanism.", string.Empty),
 			/*Cost*/field_1531 = 30,
@@ -406,7 +406,7 @@ public static class oldWheel
 					AtomType baseAtom = baseAtoms[hex];
 					AtomType transmutationAtom = transmutationAtoms[hex];
 
-					Vector2 vector2 = renderer.field_1797 + class_187.field_1742.method_492(hex).Rotated(renderer.field_1798);
+					Vector2 vector2 = renderer.field_1797 + MainClass.hexGraphicalOffset(hex).Rotated(renderer.field_1798);
 					float num1 = (Editor.method_922() - vector2).Angle() - 1.570796f;
 					if (frameIndex < projectAtomAnimation.Length && baseAtom != transmutationAtom)
 					{
@@ -423,7 +423,7 @@ public static class oldWheel
 				//draw cage
 				float num4 = i * 60 * (float)Math.PI / 180f;
 				float radians = renderer.field_1798 + num4;
-				Vector2 vector2_9 = renderer.field_1797 + class_187.field_1742.method_492(new HexIndex(1, 0)).Rotated(radians);
+				Vector2 vector2_9 = renderer.field_1797 + MainClass.hexGraphicalOffset(new HexIndex(1, 0)).Rotated(radians);
 
 				var atomcages = atomCageLighting;
 				if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;

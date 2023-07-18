@@ -17,13 +17,19 @@ using Texture = class_256;
 
 public class MainClass : QuintessentialMod
 {
-	// private resources
-	private static IDetour hook_Sim_method_1828;
-	private static IDetour hook_Sim_method_1829;
-	private static IDetour hook_Sim_method_1832;
-	private static IDetour hook_Sim_method_1835;
-	private static IDetour hook_Sim_method_1836;
+	// resources
+	static IDetour hook_Sim_method_1828;
+	static IDetour hook_Sim_method_1829;
+	static IDetour hook_Sim_method_1832;
+	static IDetour hook_Sim_method_1835;
+	static IDetour hook_Sim_method_1836;
 
+	static Texture[] projectAtomAnimation => class_238.field_1989.field_81.field_614;
+	static Sound animismusActivate => class_238.field_1991.field_1838;
+	static Sound projectionActivate => class_238.field_1991.field_1844;
+	static Sound purificationActivate => class_238.field_1991.field_1845;
+
+	// settings
 	public static bool RavariAlternateTexture = false;
 	public override Type SettingsType => typeof(MySettings);
 	public class MySettings
@@ -42,21 +48,10 @@ public class MainClass : QuintessentialMod
 	// helper functions
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
-	//private static void glyphHasFired(PartSimState partSimState) => partSimState.field_2743 = false;
-
-	private static void changeAtomTypeOfAtom(AtomReference atomReference, AtomType newAtomType)
-	{
-		var molecule = atomReference.field_2277;
-		molecule.method_1106(newAtomType, atomReference.field_2278);
-	}
-
 	private static void playSound(Sim sim_self, Sound sound) => API.PrivateMethod<Sim>("method_1856").Invoke(sim_self, new object[] { sound });
 
 	//drawing helpers
 	public static Vector2 hexGraphicalOffset(HexIndex hex) => class_187.field_1742.method_492(hex);
-
-
-	// private main functions
 
 
 	// public main functions
@@ -82,16 +77,16 @@ public class MainClass : QuintessentialMod
 	public static void drawRavariWheelAtoms(ILContext il)
 	{
 		ILCursor cursor = new ILCursor(il);
-		// skip ahead to roughly where the method_2015 calls occur
+		// skip ahead to roughly where method_2015 is called
 		cursor.Goto(658);
 
 		// jump ahead to just after the method_2015 for-loop
 		if (!cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Ldarga_S))) return;
 
 		// load the SolutionEditorBase self and the class423 local onto the stack so we can use it
-		// then run the new code
 		cursor.Emit(OpCodes.Ldarg_0);
 		cursor.Emit(OpCodes.Ldloc_0);
+		// then run the new code
 		cursor.EmitDelegate<Action<SolutionEditorBase, SolutionEditorBase.class_423>>((seb_self, class423) =>
 		{
 			var partList = seb_self.method_502().field_3919;
@@ -99,11 +94,8 @@ public class MainClass : QuintessentialMod
 			{
 				Wheel.drawRavariAtoms(seb_self, ravari, class423.field_3959);
 			}
-
 		});
 	}
-
-
 
 	private delegate void orig_Sim_method_1828(Sim self);
 	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
@@ -193,6 +185,10 @@ public class MainClass : QuintessentialMod
 		//----- BOILERPLATE-1 END -----//
 
 		//define some helpers
+
+		bool atomTypeIsProjectable(AtomReference atomReference) => atomReference.field_2280.field_2297.method_1085();
+		AtomType projectionResult(AtomReference atomReference) => atomReference.field_2280.field_2297.method_1087();
+
 		Maybe<AtomReference> maybeFindAtom(Part part, HexIndex hex, List<Part> list, bool checkWheels = false)
 		{
 			return (Maybe<AtomReference>)API.PrivateMethod<Sim>("method_1850").Invoke(sim_self, new object[] { part, hex, list, checkWheels });
@@ -215,50 +211,21 @@ public class MainClass : QuintessentialMod
 			moleculeList.Add(molecule);
 		}
 
-		Sound animismusActivate = class_238.field_1991.field_1838;
-		Sound projectionActivate = class_238.field_1991.field_1844;
-		Sound purificationActivate = class_238.field_1991.field_1845;
-
-		
-
-		List<Part> ravariWheels = new List<Part>();
-		foreach (Part ravariWheel in partList.Where(x => x.method_1159() == oldWheel.oldRavari))
+		void consumeAtomRef(AtomReference atomRef)
 		{
-			ravariWheels.Add(ravariWheel);
+			// delete the input atom
+			atomRef.field_2277.method_1107(atomRef.field_2278);
+			// draw input getting consumed
+			SEB.field_3937.Add(new class_286(SEB, atomRef.field_2278, atomRef.field_2280));
 		}
 
-		bool findSatisfactoryWheel(HexIndex target, bool checkProjection, List<Part> wheelList, out Part wheelResult, out HexRotation rot) {
-			//////////// this should probably be moved to wheel.cs at some point
-			// based somewhat on method_1850
-
-			var dict = new Dictionary<HexIndex, HexRotation>()
-				{
-					{new HexIndex(1, 0),  HexRotation.R0},
-					{new HexIndex(0, 1),  HexRotation.R60},
-					{new HexIndex(-1, 1), HexRotation.R120},
-					{new HexIndex(-1, 0), HexRotation.R180},
-					{new HexIndex(0, -1), HexRotation.R240},
-					{new HexIndex(1, -1), HexRotation.R300},
-				};
-			bool actionIsPossible(oldWheel.MetalWheel metalWheel, HexRotation rot) => checkProjection ? metalWheel.canProject(rot) : metalWheel.canReject(rot);
-
-			foreach (var wheel in wheelList)
-			{
-				foreach (var hex in dict.Keys)
-				{
-					rot = dict[hex];
-					var wheelPartSimState = partSimStates[wheel];
-					var metalWheel = new oldWheel.MetalWheel(wheelPartSimState);
-					if ((wheelPartSimState.field_2724 + hex) == target && actionIsPossible(metalWheel,rot))
-					{
-						wheelResult = wheel;
-						return true;
-					}
-				}
-			}
-			rot = default(HexRotation);
-			wheelResult = default(Part);
-			return false;
+		void changeAtomTypeOfMetal(AtomReference atomReference, AtomType newAtomType)
+		{
+			// change atom type
+			var molecule = atomReference.field_2277;
+			molecule.method_1106(newAtomType, atomReference.field_2278);
+			// draw projection animation
+			atomReference.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomReference.field_2280, projectAtomAnimation, 30f);
 		}
 
 		// fire the glyphs!
@@ -275,28 +242,14 @@ public class MainClass : QuintessentialMod
 
 			if (partType == GlyphProjection)
 			{
-				/*
-				//some test stuff
-				AtomReference atomTest = default(AtomReference);
-
-				if (Wheel.maybeFindRavariWheelAtom(sim_self, part, new HexIndex(2, 0)).method_99(out atomTest))
-				{
-					changeAtomTypeOfAtom(atomTest, atomTest.field_2280.field_2297.method_1087());
-					Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
-					atomTest.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomTest.field_2280, projectAtomAnimation, 30f);
-				}
-				*/
-
-
 				// check if we need to project a ravariWheel, or if we need to project by direct-rejection from a ravariWheel
 				HexIndex hexInput = new HexIndex(0, 0);
 				HexIndex hexProject = new HexIndex(1, 0);
 				AtomReference atomInput = default(AtomReference);
+				AtomReference atomInputRavari = default(AtomReference);
 				AtomReference atomProject = default(AtomReference);
-				Part demotedRavariWheel = default(Part);
-				Part promotedRavariWheel = default(Part);
-				HexRotation demotedRot = default(HexRotation);
-				HexRotation promotedRot = default(HexRotation);
+				AtomReference atomProjectRavari = default(AtomReference);
+				AtomType rejectionResult = default(AtomType);
 
 				bool foundQuicksilverInput =
 					maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
@@ -306,15 +259,22 @@ public class MainClass : QuintessentialMod
 				;
 				bool foundPromotableMetal =
 					maybeFindAtom(part, hexProject, gripperList).method_99(out atomProject)
-					&& atomProject.field_2280.field_2297.method_1085() // atomType has a projection result
+					&& atomTypeIsProjectable(atomProject) // atomType has a projection result
 				;
-				bool foundDemotableRavari = theRavariSpecial && findSatisfactoryWheel(part.method_1184(hexInput), false, ravariWheels, out demotedRavariWheel, out demotedRot);
-				bool foundPromotableRavari = findSatisfactoryWheel(part.method_1184(hexProject), true, ravariWheels, out promotedRavariWheel, out promotedRot);
+				bool foundDemotableRavari =
+					theRavariSpecial
+					&& Wheel.maybeFindRavariWheelAtom(sim_self, part, hexInput).method_99(out atomInputRavari)
+					&& API.applyRejectionRule(atomInputRavari.field_2280, out rejectionResult)
+				;
+				bool foundPromotableRavari =
+					Wheel.maybeFindRavariWheelAtom(sim_self, part, hexProject).method_99(out atomProjectRavari)
+					&& atomTypeIsProjectable(atomProjectRavari)
+				;
 
 				if (
 					(foundQuicksilverInput || foundDemotableRavari) // found input
 					&& (foundPromotableMetal || foundPromotableRavari) // found output
-					&& !(foundQuicksilverInput && foundPromotableMetal) // ignore the case that the projection glyph already covers
+					&& (foundDemotableRavari || foundPromotableRavari) // ignore (quicksilver && metal atom) because that case was already covered
 				)
 				{
 					// sounds and animation for firing the glyph
@@ -322,34 +282,20 @@ public class MainClass : QuintessentialMod
 					Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexProject.Rotated(part.method_1163()));
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, part.method_1163().ToRadians()));
-					
+
 					// handle input
 					if (foundQuicksilverInput)
 					{
-						// delete the input atom
-						atomInput.field_2277.method_1107(atomInput.field_2278);
-						// draw input getting consumed
-						SEB.field_3937.Add(new class_286(SEB, atomInput.field_2278, atomInput.field_2280));
+						consumeAtomRef(atomInput);
 					}
-					else // foundDemotableRavari
+					else
 					{
-						var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
-						metalWheel.reject(demotedRot);
+						changeAtomTypeOfMetal(atomInputRavari, rejectionResult);
 						//drawRavariFlash(hexInput);
 					}
-
 					// handle output
-					if (foundPromotableMetal)
-					{
-						changeAtomTypeOfAtom(atomProject, atomProject.field_2280.field_2297.method_1087());
-						Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
-						atomProject.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomProject.field_2280, projectAtomAnimation, 30f);
-					}
-					else // foundPromotableRavari
-					{
-						var metalWheel = new oldWheel.MetalWheel(partSimStates[promotedRavariWheel]);
-						metalWheel.project(promotedRot);
-					}
+					AtomReference promotableRef = foundPromotableMetal ? atomProject : atomProjectRavari;
+					changeAtomTypeOfMetal(promotableRef, projectionResult(promotableRef));
 				}
 			}
 			else if (partType == Glyphs.Rejection)
@@ -357,23 +303,27 @@ public class MainClass : QuintessentialMod
 				HexIndex hexReject = new HexIndex(0, 0);
 				HexIndex hexOutput = new HexIndex(1, 0);
 				AtomReference atomReject = default(AtomReference);
-				Part demotedRavariWheel = default(Part);
-				Part promotedRavariWheel = default(Part);
-				HexRotation demotedRot = default(HexRotation);
-				HexRotation promotedRot = default(HexRotation);
-				AtomType rejectedAtomType = default(AtomType);
+				AtomReference atomPromoteRavari = default(AtomReference);
+				AtomType rejectionResult = default(AtomType);
 
 				bool foundDemotableMetal =
-					maybeFindAtom(part, hexReject, gripperList).method_99(out atomReject)
-					&& API.applyRejectionRule(atomReject.field_2280, out rejectedAtomType) // atomType has a rejection result
+					(maybeFindAtom(part, hexReject, gripperList).method_99(out atomReject)
+					&& API.applyRejectionRule(atomReject.field_2280, out rejectionResult)
+					)
+					||
+					(Wheel.maybeFindRavariWheelAtom(sim_self, part, hexReject).method_99(out atomReject)
+					&& API.applyRejectionRule(atomReject.field_2280, out rejectionResult)
+					)
 				;
-				bool foundDemotableRavari = findSatisfactoryWheel(part.method_1184(hexReject), false, ravariWheels, out demotedRavariWheel, out demotedRot);
-
-				bool outputNotBlocked = !maybeFindAtom(part, hexOutput, new List<Part>(), true).method_99(out _); // the extra TRUE means we're checking for wheels
-				bool foundPromotableRavari = theRavariSpecial && findSatisfactoryWheel(part.method_1184(hexOutput), true, ravariWheels, out promotedRavariWheel, out promotedRot);
+				bool outputNotBlocked = !maybeFindAtom(part, hexOutput, new List<Part>(), true).method_99(out _); // the extra TRUE means we're checking for berlo and ravari wheels, etc
+				bool foundPromotableRavari =
+					theRavariSpecial
+					&& Wheel.maybeFindRavariWheelAtom(sim_self, part, hexOutput).method_99(out atomPromoteRavari)
+					&& atomTypeIsProjectable(atomPromoteRavari)
+				;
 
 				if (
-					(foundDemotableMetal || foundDemotableRavari) // found input
+					foundDemotableMetal // found input
 					&& (outputNotBlocked || foundPromotableRavari) // found output
 				)
 				{
@@ -383,20 +333,8 @@ public class MainClass : QuintessentialMod
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
 					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
-					// handle input
-					if (foundDemotableMetal)
-					{
-						changeAtomTypeOfAtom(atomReject, rejectedAtomType);
-						Texture[] projectAtomAnimation = class_238.field_1989.field_81.field_614;
-						atomReject.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomReject.field_2280, projectAtomAnimation, 30f);
-					}
-					else // foundDemotableRavari
-					{
-						var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
-						metalWheel.reject(demotedRot);
-					}
-
-					// handle output
+					
+					changeAtomTypeOfMetal(atomReject, rejectionResult);
 					if (outputNotBlocked)
 					{
 						spawnAtomAtHex(part, hexOutput, API.quicksilverAtomType());
@@ -406,8 +344,7 @@ public class MainClass : QuintessentialMod
 					}
 					else // foundPromotableRavari
 					{
-						var metalWheel = new oldWheel.MetalWheel(partSimStates[promotedRavariWheel]);
-						metalWheel.project(promotedRot);
+						changeAtomTypeOfMetal(atomPromoteRavari, projectionResult(atomPromoteRavari));
 						//drawRavariFlash(hexOutput);
 					}
 				}
@@ -434,10 +371,7 @@ public class MainClass : QuintessentialMod
 					{
 						glyphNeedsToFire(partSimState);
 						playSound(sim_self, purificationActivate);
-						// delete the input atom
-						atomDeposit.field_2277.method_1107(atomDeposit.field_2278);
-						// draw input getting consumed
-						SEB.field_3937.Add(new class_286(SEB, atomDeposit.field_2278, atomDeposit.field_2280));
+						consumeAtomRef(atomDeposit);
 						// take care of outputs
 						partSimState.field_2744 = new AtomType[2] { depositAtomTypePair.Left, depositAtomTypePair.Right };
 						addColliderAtHex(part, hexLeft);
@@ -457,77 +391,77 @@ public class MainClass : QuintessentialMod
 				HexIndex hexUp = new HexIndex(0, 1);
 				HexIndex hexDown = new HexIndex(1, -1);
 
-				if (!glyphIsFiring(partSimState))
-				{
-					if (isConsumptionHalfstep
-					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
-					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
-					)
-					{
-						AtomReference atomUp;
-						AtomReference atomDown;
-						bool foundAtomUp = maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp)
-							&& !atomUp.field_2281 // a single atom
-							&& !atomUp.field_2282 // not held by a gripper
-						;
-						bool foundAtomDown = maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
-							&& !atomDown.field_2281 // a single atom
-							&& !atomDown.field_2282 // not held by a gripper
-						;
-
-						bool proliferateUp = foundAtomUp && API.applyProliferationRule(atomUp.field_2280, out _);
-						bool proliferateDown = foundAtomDown && API.applyProliferationRule(atomDown.field_2280, out _);
-						
-						if (proliferateUp ^ proliferateDown) // found metal input
-						{
-							// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
-							// so finding zero or two proliferable atoms is no good
-							HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
-							HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
-
-							AtomReference atomProlif = proliferateUp ? atomUp : atomDown;
-							AtomReference atomQuicksilver = proliferateUp ? atomDown : atomUp;
-							bool foundQuicksilver = (proliferateUp ? foundAtomDown : foundAtomUp) && atomQuicksilver.field_2280 == API.quicksilverAtomType();
-							
-							Part demotedRavariWheel = default(Part);
-							HexRotation demotedRot = default(HexRotation);
-							bool foundDemotableRavari = findSatisfactoryWheel(part.method_1184(hexQuicksilver), false, ravariWheels, out demotedRavariWheel, out demotedRot);
-
-							if (foundQuicksilver || foundDemotableRavari)
-							{
-								//fire the glyph!
-								Pair<AtomType, AtomType> prolifAtomTypePair;
-								API.applyProliferationRule(atomProlif.field_2280, out prolifAtomTypePair);
-								glyphNeedsToFire(partSimState);
-								playSound(sim_self, animismusActivate);
-
-								//take care of inputs
-								atomProlif.field_2277.method_1107(atomProlif.field_2278);
-								SEB.field_3937.Add(new class_286(SEB, atomProlif.field_2278, atomProlif.field_2280));
-								if (foundQuicksilver)
-								{
-									atomQuicksilver.field_2277.method_1107(atomQuicksilver.field_2278);
-									SEB.field_3937.Add(new class_286(SEB, atomQuicksilver.field_2278, atomQuicksilver.field_2280));
-								}
-								else // foundDemotableRavari
-								{
-									var metalWheel = new oldWheel.MetalWheel(partSimStates[demotedRavariWheel]);
-									metalWheel.reject(demotedRot);
-									//drawRavariFlash(hexQuicksilver);
-								}
-
-								// take care of outputs
-								partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
-								addColliderAtHex(part, hexLeft);
-								addColliderAtHex(part, hexRight);
-							}
-						}
-					}
-				}
-				else
+				if (glyphIsFiring(partSimState))
 				{
 					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
 					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
+				}
+				else if (
+					isConsumptionHalfstep
+					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
+					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
+				)
+				{
+					AtomReference atomUp;
+					AtomReference atomDown;
+					bool foundAtomUp = maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp)
+						&& !atomUp.field_2281 // a single atom
+						&& !atomUp.field_2282 // not held by a gripper
+					;
+					bool foundAtomDown = maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
+						&& !atomDown.field_2281 // a single atom
+						&& !atomDown.field_2282 // not held by a gripper
+					;
+
+					bool proliferateUp = foundAtomUp && API.applyProliferationRule(atomUp.field_2280, out _);
+					bool proliferateDown = foundAtomDown && API.applyProliferationRule(atomDown.field_2280, out _);
+					
+					if (proliferateUp ^ proliferateDown) // found metal input
+					{
+						// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
+						// so finding zero or two proliferable atoms is no good
+						HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
+						HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
+
+						AtomReference atomProlif = proliferateUp ? atomUp : atomDown;
+						AtomReference atomQuicksilver = proliferateUp ? atomDown : atomUp;
+						AtomReference atomDemotableRavari = default(AtomReference);
+						AtomType rejectionResult = default(AtomType);
+
+						bool foundQuicksilver = (proliferateUp ? foundAtomDown : foundAtomUp) && atomQuicksilver.field_2280 == API.quicksilverAtomType();
+
+						bool foundDemotableRavari =
+							theRavariSpecial
+							&& Wheel.maybeFindRavariWheelAtom(sim_self, part, hexQuicksilver).method_99(out atomDemotableRavari)
+							&& API.applyRejectionRule(atomDemotableRavari.field_2280, out rejectionResult)
+						;
+						
+						if (foundQuicksilver || foundDemotableRavari)
+						{
+							//fire the glyph!
+							Pair<AtomType, AtomType> prolifAtomTypePair;
+							API.applyProliferationRule(atomProlif.field_2280, out prolifAtomTypePair);
+							glyphNeedsToFire(partSimState);
+							playSound(sim_self, animismusActivate);
+
+							//take care of inputs
+							consumeAtomRef(atomProlif);
+							if (foundQuicksilver)
+							{
+								consumeAtomRef(atomQuicksilver);
+							}
+							else // foundDemotableRavari
+							{
+								changeAtomTypeOfMetal(atomDemotableRavari, rejectionResult);
+								//drawRavariFlash(hexQuicksilver);
+							}
+
+							// take care of outputs
+							partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
+							addColliderAtHex(part, hexLeft);
+							addColliderAtHex(part, hexRight);
+						}
+					}
 				}
 			}
 		}
