@@ -18,7 +18,6 @@ using Texture = class_256;
 public class MainClass : QuintessentialMod
 {
 	// resources
-	static IDetour hook_Sim_method_1828;
 	static IDetour hook_Sim_method_1829;
 	static IDetour hook_Sim_method_1832;
 	static IDetour hook_Sim_method_1835;
@@ -62,11 +61,9 @@ public class MainClass : QuintessentialMod
 	public override void LoadPuzzleContent()
 	{
 		Glyphs.LoadContent();
-		oldWheel.LoadContent();
 		Wheel.LoadContent();
 
 		//------------------------- HOOKING -------------------------//
-		hook_Sim_method_1828 = new Hook(API.PrivateMethod<Sim>("method_1828"), OnSimMethod1828);
 		hook_Sim_method_1829 = new Hook(API.PrivateMethod<Sim>("method_1829"), OnSimMethod1829);
 		hook_Sim_method_1832 = new Hook(API.PrivateMethod<Sim>("method_1832"), OnSimMethod1832);
 		hook_Sim_method_1835 = new Hook(API.PrivateMethod<Sim>("method_1835"), OnSimMethod1835);
@@ -97,24 +94,10 @@ public class MainClass : QuintessentialMod
 		});
 	}
 
-	private delegate void orig_Sim_method_1828(Sim self);
 	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
 	private delegate void orig_Sim_method_1832(Sim self, bool isConsumptionHalfstep);
 	private delegate void orig_Sim_method_1835(Sim self);
 	private delegate void orig_Sim_method_1836(Sim self);
-	private static void OnSimMethod1828(orig_Sim_method_1828 orig, Sim sim_self)
-	{
-		var sim_dyn = new DynamicData(sim_self);
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-		foreach (var kvp in partSimStates.Where(x => x.Key.method_1159() == oldWheel.oldRavari))
-		{
-			var partSimState = kvp.Value;
-			oldWheel.MetalWheel metalWheel = new oldWheel.MetalWheel(partSimState);
-			metalWheel.clearProjectionsAndRejections();
-		}
-
-		orig(sim_self);
-	}
 	private static void OnSimMethod1829(orig_Sim_method_1829 orig, Sim sim_self, enum_127 instructionType)
 	{
 		if (instructionType == (enum_127) 1) My_Method_1829(sim_self);
@@ -123,11 +106,11 @@ public class MainClass : QuintessentialMod
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool isConsumptionHalfstep)
 	{
 		My_Method_1832(sim_self, isConsumptionHalfstep);
-		oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep)));
+		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep));
 	}
 	//spent Ravari wheels need to have different collision behavior
-	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self)));
-	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => oldWheel.manageSpentRavaris(sim_self, () => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self)));
+	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
+	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
 
 
 
@@ -141,16 +124,6 @@ public class MainClass : QuintessentialMod
 
 		var dropInstruction = class_169.field_1664;
 
-		foreach (var ravari in partList.Where(x => x.method_1159() == oldWheel.oldRavari))
-		{
-			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
-			if (instructionType == dropInstruction)
-			{
-				var ravariState = partSimStates[ravari];
-				var metalWheel = new oldWheel.MetalWheel(ravariState);
-				metalWheel.spendWheel(sim_self);
-			}
-		}
 		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
 		{
 			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
@@ -527,7 +500,6 @@ public class MainClass : QuintessentialMod
 
 	public override void Unload()
 	{
-		hook_Sim_method_1828.Dispose();
 		hook_Sim_method_1829.Dispose();
 		hook_Sim_method_1832.Dispose();
 		hook_Sim_method_1835.Dispose();
@@ -545,7 +517,7 @@ public class MainClass : QuintessentialMod
 		{
 			Logger.Log("[ReductiveMetallurgy] Detected optional dependency 'FTSIGCTU' - adding mirror rules for parts.");
 			Glyphs.LoadMirrorRules();
-			oldWheel.LoadMirrorRules();
+			Wheel.LoadMirrorRules();
 		}
 		else
 		{
@@ -563,10 +535,6 @@ public class MainClass : QuintessentialMod
 		if (part.method_1159() == Wheel.Ravari)
 		{
 			Wheel.drawSelectionGlow(seb_self, part, pos, alpha);
-		}
-		else if(part.method_1159() == oldWheel.oldRavari)
-		{
-			oldWheel.drawSelectionGlow(seb_self, part, pos, alpha);
 		}
 
 		orig(seb_self, part, pos, alpha);
