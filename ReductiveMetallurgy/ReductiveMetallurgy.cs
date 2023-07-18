@@ -86,10 +86,13 @@ public class MainClass : QuintessentialMod
 		// then run the new code
 		cursor.EmitDelegate<Action<SolutionEditorBase, SolutionEditorBase.class_423>>((seb_self, class423) =>
 		{
-			var partList = seb_self.method_502().field_3919;
-			foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+			if (seb_self.method_503() != enum_128.Stopped)
 			{
-				Wheel.drawRavariAtoms(seb_self, ravari, class423.field_3959);
+				var partList = seb_self.method_502().field_3919;
+				foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
+				{
+					Wheel.drawRavariAtoms(seb_self, ravari, class423.field_3959);
+				}
 			}
 		});
 	}

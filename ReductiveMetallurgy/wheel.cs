@@ -267,15 +267,15 @@ public static class Wheel
 	
 	static void DrawRavariPart (Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer)
 	{
-		// draw arm stubs
-		class_236 class236 = editor.method_1989(part, pos);
-		API.PrivateMethod<SolutionEditorBase>("method_2005").Invoke(editor, new object[] { part.method_1165(), HexArmRotations, class236 });
-
 		// draw atoms, if the simulation is stopped
 		if (editor.method_503() == enum_128.Stopped)
 		{
 			drawRavariAtoms(editor, part, pos);
 		}
+
+		// draw arm stubs
+		class_236 class236 = editor.method_1989(part, pos);
+		API.PrivateMethod<SolutionEditorBase>("method_2005").Invoke(editor, new object[] { part.method_1165(), HexArmRotations, class236 });
 
 		// draw cages
 		PartSimState partSimState = editor.method_507().method_481(part);
