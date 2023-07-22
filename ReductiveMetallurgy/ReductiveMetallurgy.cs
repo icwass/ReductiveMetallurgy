@@ -25,22 +25,6 @@ public class MainClass : QuintessentialMod
 	static Sound projectionActivate => class_238.field_1991.field_1844;
 	static Sound purificationActivate => class_238.field_1991.field_1845;
 
-	// settings
-	public static bool RavariAlternateTexture = false;
-	public override Type SettingsType => typeof(MySettings);
-	public class MySettings
-	{
-		[SettingsLabel("Use an alternate texture for Ravari's Wheel.")]
-		public bool RavariAlternateTexture = false;
-	}
-	public override void ApplySettings()
-	{
-		base.ApplySettings();
-
-		var SET = (MySettings)Settings;
-		RavariAlternateTexture = SET.RavariAlternateTexture;
-	}
-
 	// helper functions
 	private static bool glyphIsFiring(PartSimState partSimState) => partSimState.field_2743;
 	private static void glyphNeedsToFire(PartSimState partSimState) => partSimState.field_2743 = true;
@@ -53,7 +37,7 @@ public class MainClass : QuintessentialMod
 	// public main functions
 	public override void Load()
 	{
-		Settings = new MySettings();
+		//
 	}
 	public override void LoadPuzzleContent()
 	{
@@ -354,8 +338,6 @@ public class MainClass : QuintessentialMod
 					{
 						// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
 						// so finding zero or two proliferable atoms is no good
-
-						Logger.Log("Proliferation found metal input!");
 
 						HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
 						HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
