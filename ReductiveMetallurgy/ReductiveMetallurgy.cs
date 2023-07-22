@@ -18,10 +18,7 @@ using Texture = class_256;
 public class MainClass : QuintessentialMod
 {
 	// resources
-	static IDetour hook_Sim_method_1829;
 	static IDetour hook_Sim_method_1832;
-	static IDetour hook_Sim_method_1835;
-	static IDetour hook_Sim_method_1836;
 
 	static Texture[] projectAtomAnimation => class_238.field_1989.field_81.field_614;
 	static Sound animismusActivate => class_238.field_1991.field_1838;
@@ -64,10 +61,7 @@ public class MainClass : QuintessentialMod
 		Wheel.LoadContent();
 
 		//------------------------- HOOKING -------------------------//
-		hook_Sim_method_1829 = new Hook(API.PrivateMethod<Sim>("method_1829"), OnSimMethod1829);
 		hook_Sim_method_1832 = new Hook(API.PrivateMethod<Sim>("method_1832"), OnSimMethod1832);
-		hook_Sim_method_1835 = new Hook(API.PrivateMethod<Sim>("method_1835"), OnSimMethod1835);
-		hook_Sim_method_1836 = new Hook(API.PrivateMethod<Sim>("method_1836"), OnSimMethod1836);
 
 		IL.SolutionEditorBase.method_1984 += drawRavariWheelAtoms;
 	}
@@ -97,44 +91,11 @@ public class MainClass : QuintessentialMod
 		});
 	}
 
-	private delegate void orig_Sim_method_1829(Sim self, enum_127 instructionType);
 	private delegate void orig_Sim_method_1832(Sim self, bool isConsumptionHalfstep);
-	private delegate void orig_Sim_method_1835(Sim self);
-	private delegate void orig_Sim_method_1836(Sim self);
-	private static void OnSimMethod1829(orig_Sim_method_1829 orig, Sim sim_self, enum_127 instructionType)
-	{
-		if (instructionType == (enum_127) 1) My_Method_1829(sim_self);
-		orig(sim_self, instructionType);
-	}
 	private static void OnSimMethod1832(orig_Sim_method_1832 orig, Sim sim_self, bool isConsumptionHalfstep)
 	{
 		My_Method_1832(sim_self, isConsumptionHalfstep);
-		Wheel.manageSpentRavaris(sim_self, () => orig(sim_self, isConsumptionHalfstep));
-	}
-	//spent Ravari wheels need to have different collision behavior
-	private static void OnSimMethod1835(orig_Sim_method_1835 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
-	private static void OnSimMethod1836(orig_Sim_method_1836 orig, Sim sim_self) => Wheel.manageSpentRavaris(sim_self, () => orig(sim_self));
-
-
-
-	public static void My_Method_1829(Sim sim_self)
-	{
-		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
-		var solution = SEB.method_502();
-		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-
-		var dropInstruction = class_169.field_1664;
-
-		foreach (var ravari in partList.Where(x => x.method_1159() == Wheel.Ravari))
-		{
-			InstructionType instructionType = sim_self.method_1820().method_852(sim_self.method_1818(), ravari, out Maybe<int> _);
-			if (instructionType == dropInstruction)
-			{
-				Wheel.spendRavariWheel(sim_self, ravari);
-			}
-		}
+		orig(sim_self, isConsumptionHalfstep);
 	}
 	public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
 	{
@@ -210,8 +171,6 @@ public class MainClass : QuintessentialMod
 		{
 			PartSimState partSimState = partSimStates[part];
 			var partType = part.method_1159();
-
-			var glyphFlashAnimation = class_238.field_1989.field_90.field_243;
 
 			bool theRavariSpecial = !isConsumptionHalfstep; // "direct-transferring" quicksilver to/from a ravariWheel should only happen on one of the two half-steps
 
@@ -504,10 +463,7 @@ public class MainClass : QuintessentialMod
 
 	public override void Unload()
 	{
-		hook_Sim_method_1829.Dispose();
 		hook_Sim_method_1832.Dispose();
-		hook_Sim_method_1835.Dispose();
-		hook_Sim_method_1836.Dispose();
 	}
 
 	//------------------------- END HOOKING -------------------------//

@@ -19,7 +19,6 @@ public static class Glyphs
 {
 	public static PartType Rejection, Deposition, Proliferation;
 
-
 	private static PartType makeGlyph(
 		string id,
 		string name,

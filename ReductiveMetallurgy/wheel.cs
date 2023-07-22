@@ -17,18 +17,12 @@ using Texture = class_256;
 
 public static class Wheel
 {
-	public static PartType Ravari, RavariSpent;
+	public static PartType Ravari;
 
 	const float sixtyDegrees = 60f * (float)Math.PI / 180f;
 	const string RavariWheelAtomsField = "ReductiveMetallurgy_RavariWheelAtoms";
-	const string RavariWheelSpentField = "ReductiveMetallurgy_RavariWheelSpent";
 
-	static Sound RavariSpend;
-	static Texture[] RavariSeparateAnimation;
-	static Texture[] RavariFlyAnimation;
 	static Texture[] RavariFlashAnimation;
-	static class_126 atomCageBrokenLighting;
-	static class_126 atomCageBrokenLightingAlt;
 	static class_126 atomCageLighting => class_238.field_1989.field_90.field_232;
 	static PartType Berlo => PartTypes.field_1771;
 	static HexRotation[] HexArmRotations => PartTypes.field_1767.field_1534;
@@ -50,26 +44,6 @@ public static class Wheel
 	{
 		SEB.field_3935.Add(new class_228(SEB, (enum_7)1, MainClass.hexGraphicalOffset(hex.Rotated(part.method_1163()) + part.method_1161()), RavariFlashAnimation, 30f, Vector2.Zero, 0f));
 	}
-	public static void manageSpentRavaris(Sim sim_self, Action action)
-	{
-		var SEB = new DynamicData(sim_self).Get<SolutionEditorBase>("field_3818");
-		var partList = SEB.method_502().field_3919;
-		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
-		{
-			PartSimState partSimState = SEB.method_507().method_481(ravari);
-			if (GetRavariWheelSpent(partSimState))
-			{
-				new DynamicData(ravari).Set("field_2691", RavariSpent);
-			}
-		}
-		//=====//
-		action();
-		//=====//
-		foreach (var ravari in partList.Where(x => x.method_1159() == RavariSpent))
-		{
-			new DynamicData(ravari).Set("field_2691", Ravari);
-		}
-	}
 	public static void drawSelectionGlow(SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
 		var cageSelectGlowTexture = class_238.field_1989.field_97.field_367;
@@ -89,52 +63,9 @@ public static class Wheel
 	{
 		if (part.method_1159() != Ravari) return;
 		PartSimState partSimState = seb_self.method_507().method_481(part);
-		if (GetRavariWheelSpent(partSimState)) return;
 
 		class_236 class236 = seb_self.method_1989(part, pos);
 		Editor.method_925(GetRavariWheelAtoms(partSimState), class236.field_1984, new HexIndex(0,0), class236.field_1985, 1f, 1f, 1f, false, seb_self);
-	}
-	public static void spendRavariWheel(Sim sim_self, Part part)
-	{
-		if (part.method_1159() != Ravari) return;
-		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
-		PartSimState partSimState = SEB.method_507().method_481(part);
-		if (GetRavariWheelSpent(partSimState)) return;
-
-		SetRavariWheelData(partSimState, RavariWheelSpentField, true);
-
-		// add atoms to the board
-		var hexIndex = partSimState.field_2724;
-		var rotation = partSimState.field_2726;
-		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
-		var conduitMoleculeList = sim_dyn.Get<List<Molecule>>("field_3828");
-
-		foreach (var kvp in GetRavariWheelAtoms(partSimState).method_1100())
-		{
-			var hex = kvp.Key;
-			var atom = kvp.Value;
-			Molecule molecule = new Molecule();
-			molecule.method_1105(atom.method_804(), hexIndex + hex.Rotated(rotation));
-			moleculeList.Add(molecule);
-			conduitMoleculeList.Add(molecule);
-		}
-
-		// play sound effect
-		Sound simulationStop = class_238.field_1991.field_1863;
-		float volumeFactor = SEB.method_506();
-		simulationStop.method_28(0.75f * volumeFactor);
-		RavariSpend.method_28(1f * volumeFactor);
-
-		// draw separation animations
-		foreach (var hex in HexIndex.AdjacentOffsets)
-		{
-			var hex_pos = MainClass.hexGraphicalOffset(hexIndex + hex);
-			Vector2 vec = class_162.method_413(MainClass.hexGraphicalOffset(hexIndex), hex_pos, 0.67f);
-			float angle = MainClass.hexGraphicalOffset(hex).Angle();
-			SEB.field_3936.Add(new class_228(SEB, (enum_7)1, hex_pos, RavariFlyAnimation, 75f, new Vector2(-32f, 0f), angle));
-			SEB.field_3936.Add(new class_228(SEB, (enum_7)1, vec, RavariSeparateAnimation, 75f, new Vector2(1.5f, -2.5f), angle));
-		}
 	}
 
 	public static Maybe<AtomReference> maybeFindRavariWheelAtom(Sim sim_self, Part part, HexIndex offset)
@@ -168,7 +99,6 @@ public static class Wheel
 	{
 		if (ContentLoaded) return;
 		ContentLoaded = true;
-		LoadSoundResources();
 		LoadTextureResources();
 		//=========================//
 		string iconpath = "reductiveMetallurgy/textures/parts/icons/verrin";
@@ -176,7 +106,7 @@ public static class Wheel
 		{
 			/*ID*/field_1528 = "wheel-verrin",
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
-			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged. The wheel also has a drop-mechanism that can release the metals.", string.Empty),
+			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged.", string.Empty),
 			/*Cost*/field_1531 = 30,
 			/*Type*/field_1532 = (enum_2) 1,
 			/*Programmable?*/field_1533 = true,
@@ -188,12 +118,6 @@ public static class Wheel
 			/*Only One Allowed?*/field_1552 = true,
 		};
 		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType());
-
-		RavariSpent = new PartType()
-		{
-			/*Type*/field_1532 = (enum_2) 1,
-			/*Programmable?*/field_1533 = true,
-		};
 
 		QApi.AddPartTypeToPanel(Ravari, Berlo);
 		QApi.AddPartType(Ravari, DrawRavariPart);
@@ -214,7 +138,6 @@ public static class Wheel
 			return (T)data;
 		}
 	}
-	private static bool GetRavariWheelSpent(PartSimState state) => GetRavariWheelData(state, RavariWheelSpentField, false);
 	private static Molecule GetRavariWheelAtoms(PartSimState state) => GetRavariWheelData(state, RavariWheelAtomsField, RavariMolecule());
 
 	private static void LoadTextureResources()
@@ -229,50 +152,7 @@ public static class Wheel
 			}
 			return ret;
 		}
-		RavariSeparateAnimation = fetchTextureArray(28, "ravari_separate.array/separate_");
-		RavariFlyAnimation = fetchTextureArray(32, "atom_cage_fly.array/fly_");
 		RavariFlashAnimation = fetchTextureArray(10, "ravari_flash.array/flash_");
-
-		class_126 fetchClass126(string path) => new class_126(
-			class_235.method_615(path + "left"),
-			class_235.method_615(path + "right"),
-			class_235.method_615(path + "bottom"),
-			class_235.method_615(path + "top")
-		);
-		atomCageBrokenLighting = fetchClass126(dir + "atom_cage_broken.lighting/");
-		atomCageBrokenLightingAlt = fetchClass126(dir + "atom_cage_broken_alt.lighting/");
-
-
-
-
-	}
-	private static void LoadSoundResources()
-	{
-		//load the custom sound, and hook into stuff to make it work right
-		string path = "Content/reductiveMetallurgy/sounds/ravari_release.wav";
-		foreach (var dir in QuintessentialLoader.ModContentDirectories)
-		{
-			string filepath = Path.Combine(dir, path);
-			if (File.Exists(filepath))
-			{
-				RavariSpend = new Sound()
-				{
-					field_4060 = Path.GetFileNameWithoutExtension(filepath),
-					field_4061 = class_158.method_375(filepath)
-				};
-				break;
-			}
-		}
-		var field = typeof(class_11).GetField("field_52", BindingFlags.Static | BindingFlags.NonPublic);
-		var dictionary = (Dictionary<string, float>)field.GetValue(null);
-		dictionary.Add("ravari_release", 0.15f);
-
-		void Method_540(On.class_201.orig_method_540 orig, class_201 class201_self)
-		{
-			orig(class201_self);
-			RavariSpend.field_4062 = false;
-		}
-		On.class_201.method_540 += Method_540;
 	}
 	
 	static void DrawRavariPart (Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer)
@@ -289,14 +169,11 @@ public static class Wheel
 
 		// draw cages
 		PartSimState partSimState = editor.method_507().method_481(part);
-		bool isSpent = GetRavariWheelSpent(partSimState);
 		for (int i = 0; i < 6; i++)
 		{
 			float radians = renderer.field_1798 + (i * sixtyDegrees);
 			Vector2 vector2_9 = renderer.field_1797 + MainClass.hexGraphicalOffset(new HexIndex(1, 0)).Rotated(radians);
-			var atomcages = atomCageLighting;
-			if (isSpent) atomcages = MainClass.RavariAlternateTexture ? atomCageBrokenLightingAlt : atomCageBrokenLighting;
-			API.PrivateMethod<SolutionEditorBase>("method_2003").Invoke(editor, new object[] { atomcages, vector2_9, new Vector2(39f, 33f), radians });
+			API.PrivateMethod<SolutionEditorBase>("method_2003").Invoke(editor, new object[] { atomCageLighting, vector2_9, new Vector2(39f, 33f), radians });
 		}
 	}
 }
