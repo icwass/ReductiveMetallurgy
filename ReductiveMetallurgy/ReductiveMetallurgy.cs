@@ -327,9 +327,9 @@ public class MainClass : QuintessentialMod
 			}
 			else if (partType == Glyphs.Deposition)
 			{
-				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexInput = new HexIndex(0, 0);
+				HexIndex hexLeft = new HexIndex(-1, 0);
 				HexIndex hexRight = new HexIndex(1, 0);
-				HexIndex hexInput = new HexIndex(0, 1);
 
 				if (!glyphIsFiring(partSimState))
 				{
@@ -396,6 +396,9 @@ public class MainClass : QuintessentialMod
 					{
 						// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
 						// so finding zero or two proliferable atoms is no good
+
+						Logger.Log("Proliferation found metal input!");
+
 						HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
 						HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
 

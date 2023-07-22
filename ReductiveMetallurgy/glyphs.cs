@@ -134,16 +134,18 @@ public static class Glyphs
 		API.addProliferationRule(API.tinAtomType()		, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.leadAtomType()));
 		API.addProliferationRule(API.leadAtomType()		, new Pair<AtomType, AtomType>(API.leadAtomType()	, API.leadAtomType()));
 
-		string path;
-		path = "reductiveMetallurgy/textures/parts/icons/";
+		string path, iconpath, selectpath;
+		path = "reductiveMetallurgy/textures/";
+		iconpath = path + "parts/icons/";
+		selectpath = path + "select/";
 
 		Rejection = makeGlyph(
 			"glyph-rejection",
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
 			20, new HexIndex[2] { new HexIndex(0, 0), new HexIndex(1, 0) }, API.perm_rejection,
-			class_235.method_615(path + "rejection"),
-			class_235.method_615(path + "rejection_hover"),
+			class_235.method_615(iconpath + "rejection"),
+			class_235.method_615(iconpath + "rejection_hover"),
 			class_238.field_1989.field_97.field_374,// double_glow
 			class_238.field_1989.field_97.field_375 // double_stroke
 		);
@@ -152,11 +154,11 @@ public static class Glyphs
 			"glyph-deposition",
 			"Glyph of Deposition",
 			"The glyph of deposition can separate an atom of metal into two atoms of lower form.",
-			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_deposition,
-			class_235.method_615(path + "deposition"),
-			class_235.method_615(path + "deposition_hover"),
-			class_238.field_1989.field_97.field_386,// triple_glow
-			class_238.field_1989.field_97.field_387 // triple_stroke
+			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) }, API.perm_deposition,
+			class_235.method_615(iconpath + "deposition"),
+			class_235.method_615(iconpath + "deposition_hover"),
+			class_235.method_615(selectpath + "line_glow"),
+			class_235.method_615(selectpath + "line_stroke")
 		);
 
 		Proliferation = makeGlyph(
@@ -164,10 +166,12 @@ public static class Glyphs
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver and an atom of metal to generate another metal atom.",
 			40, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, API.perm_proliferation,
-			class_235.method_615(path + "proliferation"),
-			class_235.method_615(path + "proliferation_hover"),
+			class_235.method_615(iconpath + "proliferation"),
+			class_235.method_615(iconpath + "proliferation_hover"),
 			class_238.field_1989.field_97.field_368,// diamond_glow
 			class_238.field_1989.field_97.field_369, // diamond_stroke
+			//class_238.field_1989.field_97.field_386,// triple_glow
+			//class_238.field_1989.field_97.field_387 // triple_stroke
 			true // only one!
 		);
 
@@ -182,6 +186,11 @@ public static class Glyphs
 		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
 		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
+
+		Texture deposition_base = class_235.method_615(path + "deposition/base");
+		Texture deposition_connectors = class_235.method_615(path + "deposition/connectors");
+		Texture deposition_gloss = class_235.method_615(path + "deposition/gloss");
+		Texture deposition_glossMask = class_235.method_615(path + "deposition/gloss_mask");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
 		Texture[] proliferationSymbols = new Texture[5]{
@@ -253,11 +262,12 @@ public static class Glyphs
 			var simTime = editor.method_504();
 
 			var originHex = new HexIndex(0, 0);
-			var leftHex = originHex;
+			var inputHex = originHex;
+			var leftHex = new HexIndex(-1, 0);
 			var rightHex = new HexIndex(1, 0);
-			var inputHex = new HexIndex(0, 1);
+
 			float partAngle = renderer.field_1798;
-			Vector2 base_offset = new Vector2(41f, 48f);
+			Vector2 base_offset = new Vector2(123f, 48f);
 
 			int index = irisFullArray.Length - 1;
 			float num = 0f;
@@ -269,15 +279,16 @@ public static class Glyphs
 				flag = (double)simTime > 0.5;
 			}
 
-			drawPartGraphic(renderer, purificationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			drawPartGraphic(renderer, deposition_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
 			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
 			{
+				var i = hex == leftHex ? 0 : 1;
 				drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (partSimState.field_2743 && !flag)
 				{
-					drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+					drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 				}
 				drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
@@ -288,13 +299,13 @@ public static class Glyphs
 				}
 				if (flag)
 				{
-					drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
+					drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 				}
 			}
 			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, leadSymbolInputDown, textureCenter(leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
-			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+			drawPartGraphic(renderer, deposition_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
 
 		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
@@ -381,7 +392,7 @@ public static class Glyphs
 	public static void LoadMirrorRules()
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
+		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
+		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0); // mirrorVerticalPart0_5
 	}
 }
