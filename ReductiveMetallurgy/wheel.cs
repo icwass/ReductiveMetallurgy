@@ -26,6 +26,7 @@ public static class Wheel
 	static Sound RavariSpend;
 	static Texture[] RavariSeparateAnimation;
 	static Texture[] RavariFlyAnimation;
+	static Texture[] RavariFlashAnimation;
 	static class_126 atomCageBrokenLighting;
 	static class_126 atomCageBrokenLightingAlt;
 	static class_126 atomCageLighting => class_238.field_1989.field_90.field_232;
@@ -45,6 +46,10 @@ public static class Wheel
 	// ============================= //
 	// public methods called by main
 	public static void LoadMirrorRules() => FTSIGCTU.MirrorTool.addRule(Ravari, FTSIGCTU.MirrorTool.mirrorVanBerlo);
+	public static void DrawRavariFlash(SolutionEditorBase SEB, Part part, HexIndex hex)
+	{
+		SEB.field_3935.Add(new class_228(SEB, (enum_7)1, MainClass.hexGraphicalOffset(hex.Rotated(part.method_1163()) + part.method_1161()), RavariFlashAnimation, 30f, Vector2.Zero, 0f));
+	}
 	public static void manageSpentRavaris(Sim sim_self, Action action)
 	{
 		var SEB = new DynamicData(sim_self).Get<SolutionEditorBase>("field_3818");
@@ -226,6 +231,7 @@ public static class Wheel
 		}
 		RavariSeparateAnimation = fetchTextureArray(28, "ravari_separate.array/separate_");
 		RavariFlyAnimation = fetchTextureArray(32, "atom_cage_fly.array/fly_");
+		RavariFlashAnimation = fetchTextureArray(10, "ravari_flash.array/flash_");
 
 		class_126 fetchClass126(string path) => new class_126(
 			class_235.method_615(path + "left"),
@@ -235,6 +241,10 @@ public static class Wheel
 		);
 		atomCageBrokenLighting = fetchClass126(dir + "atom_cage_broken.lighting/");
 		atomCageBrokenLightingAlt = fetchClass126(dir + "atom_cage_broken_alt.lighting/");
+
+
+
+
 	}
 	private static void LoadSoundResources()
 	{

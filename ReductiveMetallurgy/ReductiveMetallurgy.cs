@@ -212,7 +212,6 @@ public class MainClass : QuintessentialMod
 			var partType = part.method_1159();
 
 			var glyphFlashAnimation = class_238.field_1989.field_90.field_243;
-			void drawRavariFlash(HexIndex hex) => SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexGraphicalOffset(hex.Rotated(part.method_1163()) + part.method_1161()), glyphFlashAnimation, 30f, Vector2.Zero, 0f));
 
 			bool theRavariSpecial = !isConsumptionHalfstep; // "direct-transferring" quicksilver to/from a ravariWheel should only happen on one of the two half-steps
 
@@ -267,7 +266,7 @@ public class MainClass : QuintessentialMod
 					else
 					{
 						changeAtomTypeOfMetal(atomInputRavari, rejectionResult);
-						//drawRavariFlash(hexInput);
+						Wheel.DrawRavariFlash(SEB, part, hexInput);
 					}
 					// handle output
 					AtomReference promotableRef = foundPromotableMetal ? atomProject : atomProjectRavari;
@@ -321,7 +320,7 @@ public class MainClass : QuintessentialMod
 					else // foundPromotableRavari
 					{
 						changeAtomTypeOfMetal(atomPromoteRavari, projectionResult(atomPromoteRavari));
-						//drawRavariFlash(hexOutput);
+						Wheel.DrawRavariFlash(SEB, part, hexOutput);
 					}
 				}
 			}
@@ -410,8 +409,7 @@ public class MainClass : QuintessentialMod
 						bool foundQuicksilver = (proliferateUp ? foundAtomDown : foundAtomUp) && atomQuicksilver.field_2280 == API.quicksilverAtomType();
 
 						bool foundDemotableRavari =
-							theRavariSpecial
-							&& Wheel.maybeFindRavariWheelAtom(sim_self, part, hexQuicksilver).method_99(out atomDemotableRavari)
+							Wheel.maybeFindRavariWheelAtom(sim_self, part, hexQuicksilver).method_99(out atomDemotableRavari)
 							&& API.applyRejectionRule(atomDemotableRavari.field_2280, out rejectionResult)
 						;
 						
@@ -432,7 +430,7 @@ public class MainClass : QuintessentialMod
 							else // foundDemotableRavari
 							{
 								changeAtomTypeOfMetal(atomDemotableRavari, rejectionResult);
-								//drawRavariFlash(hexQuicksilver);
+								Wheel.DrawRavariFlash(SEB, part, hexQuicksilver);
 							}
 
 							// take care of outputs
