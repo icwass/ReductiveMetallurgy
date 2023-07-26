@@ -572,17 +572,19 @@ public static class Glyphs
 
 			float num = 0f;
 			bool flag = false;
+			int ioIndex = 0;
 			if (partSimState.field_2743)
 			{
-				index[lefty ? 1 : 0] = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType() ? 1 : 0;
+				index[ioIndex] = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
 				num = simTime;
+				outputHex = ioIndex == 1 ? rightHex : leftHex;
 				flag = (double)simTime > 0.5;
 			}
 			else
 			{
 				index[0] = class_162.method_404((int)(class_162.method_411(prevState[0]/ 2f, currentLeftState - prevState[0] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
 				index[1] = class_162.method_404((int)(class_162.method_411(prevState[1]/ 2f, currentRightState - prevState[1] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-				Logger.Log(simTime);
 			}
 
 			Vector2 base_offset = new Vector2(41f, 48f);
@@ -603,9 +605,10 @@ public static class Glyphs
 			}
 
 
+
 			if (partSimState.field_2743)
 			{
-				if (!flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+				if (!flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 			}
 
 			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
@@ -618,7 +621,7 @@ public static class Glyphs
 
 			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
-			if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+			if (flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 		});
 
 

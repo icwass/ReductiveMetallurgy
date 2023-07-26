@@ -299,6 +299,93 @@ public class MainClass : QuintessentialMod
 					addColliderAtHex(part, hexRight);
 				}
 			}
+			else if (partType == Glyphs.ProliferationAmbi)
+			{
+				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexRight = new HexIndex(1, 0);
+				HexIndex hexSelect = new HexIndex(0, 1);
+				if (glyphIsFiring(partSimState))
+				{
+					if (partSimState.field_2744[1] == API.quicksilverAtomType())
+					{
+						spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
+					}
+					else
+					{
+						spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
+					}
+
+				}
+				else if (isConsumptionHalfstep)
+				{
+					bool lefty = !maybeFindAtom(part, hexLeft, new List<Part>(), true).method_99(out _);// output not blocked. the extra TRUE means we're checking for berlo and ravari wheels, etc
+					bool righty = !maybeFindAtom(part, hexRight, new List<Part>(), true).method_99(out _);
+					// we use an XOR condition because the glyph can only fire if one of the hexes is empty and the other is covered by a quicksilver source!
+					if (lefty ^ righty)
+					{
+						HexIndex hexInput = !lefty ? hexLeft : hexRight;
+						HexIndex hexOutput = lefty ? hexLeft : hexRight;
+
+						AtomReference atomSelect;
+						AtomReference atomInput;
+						AtomReference atomInputRavari = default(AtomReference);
+						AtomType rejectionResult = default(AtomType);
+
+						bool foundAtomSelect =
+							(maybeFindAtom(part, hexSelect, gripperList).method_99(out atomSelect)
+							&& API.applyProliferationRule(atomSelect.field_2280, out _)
+							)
+							||
+							(Wheel.maybeFindRavariWheelAtom(sim_self, part, hexSelect).method_99(out atomSelect)
+							&& API.applyProliferationRule(atomSelect.field_2280, out _)
+							)
+						;
+
+						bool foundQuicksilverInput =
+						maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
+						&& atomInput.field_2280 == API.quicksilverAtomType() // quicksilver atom
+						&& !atomInput.field_2281 // a single atom
+						&& !atomInput.field_2282 // not held by a gripper
+						;
+
+						bool foundDemotableRavari =
+							Wheel.maybeFindRavariWheelAtom(sim_self, part, hexInput).method_99(out atomInputRavari)
+							&& API.applyRejectionRule(atomInputRavari.field_2280, out rejectionResult)
+						;
+
+						if (foundAtomSelect
+							&& (foundQuicksilverInput || foundDemotableRavari)
+						)
+						{
+							glyphNeedsToFire(partSimState);
+							playSound(sim_self, animismusActivate);
+							// take care of inputs
+							if (foundQuicksilverInput)
+							{
+								consumeAtomRef(atomInput);
+							}
+							else // foundDemotableRavari
+							{
+								changeAtomTypeOfMetal(atomInputRavari, rejectionResult);
+								Wheel.DrawRavariFlash(SEB, part, hexInput);
+							}
+							// take care of outputs
+							if (lefty)
+							{
+								partSimState.field_2744 = new AtomType[2] { atomSelect.field_2280, API.quicksilverAtomType() };
+							}
+							else
+							{
+								partSimState.field_2744 = new AtomType[2] { API.quicksilverAtomType(), atomSelect.field_2280 };
+							}
+							addColliderAtHex(part, hexOutput);
+						}
+					}
+				}
+
+
+
+			}
 			else if (partType == Glyphs.ProliferationLeft || partType == Glyphs.ProliferationRight)
 			{
 				bool lefty = partType == Glyphs.ProliferationLeft;
