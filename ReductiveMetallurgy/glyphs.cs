@@ -17,7 +17,9 @@ using Texture = class_256;
 
 public static class Glyphs
 {
-	public static PartType Rejection, Deposition, Proliferation;
+	public static PartType Rejection, Deposition, Proliferation, ProliferationLeft, ProliferationRight, ProliferationAmbi;
+	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
+	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
 	private static PartType makeGlyph(
 		string id,
@@ -87,12 +89,16 @@ public static class Glyphs
 
 	private static void drawPartGloss(class_195 renderer, Texture gloss, Texture glossMask, Vector2 offset)
 	{
+		drawPartGloss(renderer, gloss, glossMask, offset, new HexIndex(0, 0), 0f);
+	}
+	private static void drawPartGloss(class_195 renderer, Texture gloss, Texture glossMask, Vector2 offset, HexIndex hexOffset, float angle)
+	{
 		class_135.method_257().field_1692 = class_238.field_1995.field_1757; // MaskedGlossPS shader
 		class_135.method_257().field_1693[1] = gloss;
-		HexIndex hex = new HexIndex(0, 0);
+		var hex = new HexIndex(0, 0);
 		Vector2 method2001 = 0.0001f * (renderer.field_1797 + hexGraphicalOffset(hex).Rotated(renderer.field_1798) - 0.5f * class_115.field_1433);
 		class_135.method_257().field_1695 = method2001;
-		drawPartGraphic(renderer, glossMask, offset, 0f, Vector2.Zero, Vector2.Zero);
+		drawPartGraphic(renderer, glossMask, offset, angle, hexGraphicalOffset(hexOffset), Vector2.Zero);
 		class_135.method_257().field_1692 = class_135.method_257().field_1696; // previous shader
 		class_135.method_257().field_1693[1] = class_238.field_1989.field_71;
 		class_135.method_257().field_1695 = Vector2.Zero;
@@ -169,8 +175,41 @@ public static class Glyphs
 			class_235.method_615(iconpath + "proliferation_hover"),
 			class_238.field_1989.field_97.field_368,// diamond_glow
 			class_238.field_1989.field_97.field_369, // diamond_stroke
-			//class_238.field_1989.field_97.field_386,// triple_glow
-			//class_238.field_1989.field_97.field_387 // triple_stroke
+													 //class_238.field_1989.field_97.field_386,// triple_glow
+													 //class_238.field_1989.field_97.field_387 // triple_stroke
+			true // only one!
+		);
+		ProliferationLeft = makeGlyph(
+			"glyph-proliferation-left",
+			"Glyph of Proliferation",
+			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
+			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
+			class_235.method_615(iconpath + "proliferation"),
+			class_235.method_615(iconpath + "proliferation_hover"),
+			class_238.field_1989.field_97.field_386,// triple_glow
+			class_238.field_1989.field_97.field_387, // triple_stroke
+			true // only one!
+		);
+		ProliferationRight = makeGlyph(
+			"glyph-proliferation-right",
+			"Glyph of Proliferation",
+			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
+			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
+			class_235.method_615(iconpath + "proliferation"),
+			class_235.method_615(iconpath + "proliferation_hover"),
+			class_238.field_1989.field_97.field_386,// triple_glow
+			class_238.field_1989.field_97.field_387, // triple_stroke
+			true // only one!
+		);
+		ProliferationAmbi = makeGlyph(
+			"glyph-proliferation-ambi",
+			"Glyph of Proliferation",
+			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
+			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
+			class_235.method_615(iconpath + "proliferation"),
+			class_235.method_615(iconpath + "proliferation_hover"),
+			class_238.field_1989.field_97.field_386,// triple_glow
+			class_238.field_1989.field_97.field_387, // triple_stroke
 			true // only one!
 		);
 
@@ -179,6 +218,9 @@ public static class Glyphs
 		QApi.AddPartTypeToPanel(Rejection, projector);
 		QApi.AddPartTypeToPanel(Deposition, purifier);
 		QApi.AddPartTypeToPanel(Proliferation, purifier);
+		QApi.AddPartTypeToPanel(ProliferationLeft, purifier);
+		QApi.AddPartTypeToPanel(ProliferationRight, purifier);
+		QApi.AddPartTypeToPanel(ProliferationAmbi, purifier);
 
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
@@ -203,6 +245,9 @@ public static class Glyphs
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 
+		Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
+		Texture calcinatorGlyph_symbols = class_238.field_1989.field_90.field_171;
+
 		Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
 		Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
 		Texture animismus_connectorsShadows = class_238.field_1989.field_90.field_228.field_267;
@@ -219,11 +264,13 @@ public static class Glyphs
 		Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
 		Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
+		Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
 
 		Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
 		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
 		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
 		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
+		Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
 
 		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
 
@@ -386,12 +433,204 @@ public static class Glyphs
 			drawPartGraphic(renderer, animismus_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, animismus_gloss, animismus_glossMask, base_offset + new Vector2(-1f, 0f));
 		});
+
+
+		void DrawProliferationChiral(Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer, bool lefty)
+		{
+			var interface2 = editor.method_507();
+			PartSimState partSimState = interface2.method_481(part);
+			var simTime = editor.method_504();
+
+			var leftHex = new HexIndex(0, 0);
+			var rightHex = new HexIndex(1, 0);
+			var selectHex = new HexIndex(0, 1);
+
+			var inputHex = lefty ? leftHex : rightHex;
+			var outputHex = lefty ? rightHex : leftHex;
+			Vector2 base_offset = new Vector2(41f, 48f);
+
+			int index = irisFullArray.Length - 1;
+			float num = 0f;
+			bool flag = false;
+			if (partSimState.field_2743)
+			{
+				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				num = simTime;
+				flag = (double)simTime > 0.5;
+			}
+
+			var angle = (lefty ? -120f : 120f) * (float)Math.PI / 180f;
+			var hexOffset = lefty ? new HexIndex(0, 1) : new HexIndex(1, 0);
+			drawPartGraphic(renderer, purificationGlyph_base, base_offset, angle, hexGraphicalOffset(hexOffset), new Vector2(-1f, -1f));
+
+			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
+			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphic(renderer, calcinatorGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
+
+			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+			drawPartGraphic(renderer, projectionGlyph_quicksilverSymbol, textureCenter(projectionGlyph_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(inputHex), Vector2.Zero);
+			
+			drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+
+			if (partSimState.field_2743)
+			{
+				if (!flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+			}
+			drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+
+			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, angle, hexGraphicalOffset(hexOffset), Vector2.Zero);
+			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f), hexOffset, angle);
+			if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+		}
+
+		QApi.AddPartType(ProliferationLeft, (part, pos, editor, renderer) =>
+		{
+			DrawProliferationChiral(part, pos, editor, renderer, true);
+		});
+		QApi.AddPartType(ProliferationRight, (part, pos, editor, renderer) =>
+		{
+			DrawProliferationChiral(part, pos, editor, renderer, false);
+		});
+		QApi.AddPartType(ProliferationAmbi, (part, pos, editor, renderer) =>
+		{
+			var interface2 = editor.method_507();
+			PartSimState partSimState = interface2.method_481(part);
+			var simTime = editor.method_504();
+
+			var leftHex = new HexIndex(0, 0);
+			var rightHex = new HexIndex(1, 0);
+			var selectHex = new HexIndex(0, 1);
+
+
+			var currentCycle = 0;
+			if (editor.method_503() != enum_128.Stopped && editor.GetType() == typeof(SolutionEditorScreen))
+			{
+				var maybeSim = new DynamicData(editor).Get<Maybe<Sim>>("field_4022");
+				if (maybeSim.method_1085())
+				{
+					currentCycle = maybeSim.method_1087().method_1818();
+				}
+			}
+			var state_dyn = new DynamicData(partSimState);
+			var prevStateOb = state_dyn.Get(ProliferationPrevStateField);
+			var prevCycleOb = state_dyn.Get(ProliferationPrevCycleField);
+
+			int[] prevState = new int[4] {1, 1, 1, 1};
+			int prevCycle = 0;
+			if (prevStateOb != null)
+			{
+				prevState = (int[]) prevStateOb;
+			}
+			if (prevCycleOb != null)
+			{
+				prevCycle = (int)prevCycleOb;
+			}
+
+			bool[] quicksilverAbove = new bool[2] { false, false };
+			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+			{
+				Atom atom;
+				HexIndex key = part.method_1184(hex);
+				foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
+				{
+					if (molecule.method_1100().TryGetValue(key, out atom) && atom.field_2275 == API.quicksilverAtomType())
+					{
+						quicksilverAbove[hex == leftHex ? 0 : 1] = true;
+						break;
+					}
+				}
+			}
+
+			int currentLeftState = 1;
+			int currentRightState = 1;
+			if (quicksilverAbove[0] ^ quicksilverAbove[1])
+			{
+				currentLeftState = quicksilverAbove[0] ? 0 : 2;
+				currentRightState = quicksilverAbove[1] ? 0 : 2;
+			}
+
+			if (currentCycle > prevCycle || simTime > 0.5)
+			{
+				prevState[0] = prevState[2];
+				prevState[1] = prevState[3];
+				state_dyn.Set(ProliferationPrevStateField, prevState);
+				state_dyn.Set(ProliferationPrevCycleField, currentCycle);
+			}
+			prevState[2] = currentLeftState;
+			prevState[3] = currentRightState;
+
+			bool lefty = quicksilverAbove[0] && !quicksilverAbove[1];
+			var inputHex = lefty ? leftHex : rightHex;
+			var outputHex = lefty ? rightHex : leftHex;
+
+			int[] index = new int[2] { irisFullArray.Length - 1, irisFullArray.Length - 1 };
+			index[lefty ? 0 : 1] = 0;
+
+			float num = 0f;
+			bool flag = false;
+			if (partSimState.field_2743)
+			{
+				index[lefty ? 1 : 0] = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				num = simTime;
+				flag = (double)simTime > 0.5;
+			}
+			else
+			{
+				index[0] = class_162.method_404((int)(class_162.method_411(prevState[0]/ 2f, currentLeftState - prevState[0] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				index[1] = class_162.method_404((int)(class_162.method_411(prevState[1]/ 2f, currentRightState - prevState[1] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				Logger.Log(simTime);
+			}
+
+			Vector2 base_offset = new Vector2(41f, 48f);
+			drawPartGraphic(renderer, purificationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+
+			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
+			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphic(renderer, calcinatorGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
+
+			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+			{
+				drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphic(renderer, projectionGlyph_quicksilverSymbol, textureCenter(projectionGlyph_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
+			}
+
+
+			if (partSimState.field_2743)
+			{
+				if (!flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+			}
+
+			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+			{
+				var thisIndex = index[hex == leftHex ? 0 : 1];
+				drawPartGraphicSpecular(renderer, irisFullArray[thisIndex], textureCenter(irisFullArray[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+			}
+
+
+			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+			if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+		});
+
+
 	}
 
 	public static void LoadMirrorRules()
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0); // mirrorVerticalPart0_5
+		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
+		FTSIGCTU.MirrorTool.addRule(ProliferationLeft, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		FTSIGCTU.MirrorTool.addRule(ProliferationRight, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		FTSIGCTU.MirrorTool.addRule(ProliferationAmbi, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
 	}
 }

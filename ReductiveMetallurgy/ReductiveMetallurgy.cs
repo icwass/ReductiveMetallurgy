@@ -251,7 +251,7 @@ public class MainClass : QuintessentialMod
 					Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
 					float radians = (part.method_1163() + HexRotation.R180).ToRadians();
 					SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, radians));
-					
+
 					changeAtomTypeOfMetal(atomReject, rejectionResult);
 					if (outputNotBlocked)
 					{
@@ -273,33 +273,98 @@ public class MainClass : QuintessentialMod
 				HexIndex hexLeft = new HexIndex(-1, 0);
 				HexIndex hexRight = new HexIndex(1, 0);
 
-				if (!glyphIsFiring(partSimState))
-				{
-					AtomReference atomDeposit;
-					Pair<AtomType, AtomType> depositAtomTypePair;
+				AtomReference atomDeposit;
+				Pair<AtomType, AtomType> depositAtomTypePair;
 
-					if (isConsumptionHalfstep
+				if (glyphIsFiring(partSimState))
+				{
+					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
+					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
+				}
+				else if (isConsumptionHalfstep
 					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
 					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
 					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomDeposit) // depositable atom exists
 					&& !atomDeposit.field_2281 // a single atom
 					&& !atomDeposit.field_2282 // not held by a gripper
 					&& API.applyDepositionRule(atomDeposit.field_2280, out depositAtomTypePair) // is depositable
+				)
+				{
+					glyphNeedsToFire(partSimState);
+					playSound(sim_self, purificationActivate);
+					consumeAtomRef(atomDeposit);
+					// take care of outputs
+					partSimState.field_2744 = new AtomType[2] { depositAtomTypePair.Left, depositAtomTypePair.Right };
+					addColliderAtHex(part, hexLeft);
+					addColliderAtHex(part, hexRight);
+				}
+			}
+			else if (partType == Glyphs.ProliferationLeft || partType == Glyphs.ProliferationRight)
+			{
+				bool lefty = partType == Glyphs.ProliferationLeft;
+				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexRight = new HexIndex(1, 0);
+				HexIndex hexSelect = new HexIndex(0, 1);
+
+				HexIndex hexInput = lefty ? hexLeft : hexRight;
+				HexIndex hexOutput = lefty ? hexRight : hexLeft;
+
+				if (glyphIsFiring(partSimState))
+				{
+					spawnAtomAtHex(part, hexOutput, partSimState.field_2744[0]);
+				}
+				else if (
+					isConsumptionHalfstep
+					&& !maybeFindAtom(part, hexOutput, new List<Part>(), true).method_99(out _) // output not blocked. the extra TRUE means we're checking for berlo and ravari wheels, etc
+				)
+				{
+					AtomReference atomSelect;
+					AtomReference atomInput;
+					AtomReference atomInputRavari = default(AtomReference);
+					AtomType rejectionResult = default(AtomType);
+
+					bool foundAtomSelect =
+						(maybeFindAtom(part, hexSelect, gripperList).method_99(out atomSelect)
+						&& API.applyProliferationRule(atomSelect.field_2280, out _)
+						)
+						||
+						(Wheel.maybeFindRavariWheelAtom(sim_self, part, hexSelect).method_99(out atomSelect)
+						&& API.applyProliferationRule(atomSelect.field_2280, out _)
+						)
+					;
+
+					bool foundQuicksilverInput =
+					maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
+					&& atomInput.field_2280 == API.quicksilverAtomType() // quicksilver atom
+					&& !atomInput.field_2281 // a single atom
+					&& !atomInput.field_2282 // not held by a gripper
+					;
+
+					bool foundDemotableRavari =
+						Wheel.maybeFindRavariWheelAtom(sim_self, part, hexInput).method_99(out atomInputRavari)
+						&& API.applyRejectionRule(atomInputRavari.field_2280, out rejectionResult)
+					;
+
+					if (foundAtomSelect
+						&& (foundQuicksilverInput || foundDemotableRavari)
 					)
 					{
 						glyphNeedsToFire(partSimState);
-						playSound(sim_self, purificationActivate);
-						consumeAtomRef(atomDeposit);
+						playSound(sim_self, animismusActivate);
+						// take care of inputs
+						if (foundQuicksilverInput)
+						{
+							consumeAtomRef(atomInput);
+						}
+						else // foundDemotableRavari
+						{
+							changeAtomTypeOfMetal(atomInputRavari, rejectionResult);
+							Wheel.DrawRavariFlash(SEB, part, hexInput);
+						}
 						// take care of outputs
-						partSimState.field_2744 = new AtomType[2] { depositAtomTypePair.Left, depositAtomTypePair.Right };
-						addColliderAtHex(part, hexLeft);
-						addColliderAtHex(part, hexRight);
+						partSimState.field_2744 = new AtomType[1] { atomSelect.field_2280 };
+						addColliderAtHex(part, hexOutput);
 					}
-				}
-				else
-				{
-					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
-					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
 				}
 			}
 			else if (partType == Glyphs.Proliferation)
@@ -333,7 +398,7 @@ public class MainClass : QuintessentialMod
 
 					bool proliferateUp = foundAtomUp && API.applyProliferationRule(atomUp.field_2280, out _);
 					bool proliferateDown = foundAtomDown && API.applyProliferationRule(atomDown.field_2280, out _);
-					
+
 					if (proliferateUp ^ proliferateDown) // found metal input
 					{
 						// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
@@ -353,7 +418,7 @@ public class MainClass : QuintessentialMod
 							Wheel.maybeFindRavariWheelAtom(sim_self, part, hexQuicksilver).method_99(out atomDemotableRavari)
 							&& API.applyRejectionRule(atomDemotableRavari.field_2280, out rejectionResult)
 						;
-						
+
 						if (foundQuicksilver || foundDemotableRavari)
 						{
 							//fire the glyph!
