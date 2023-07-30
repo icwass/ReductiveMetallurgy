@@ -228,10 +228,11 @@ public static class Glyphs
 		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
 		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
 
-		Texture deposition_base = class_235.method_615(path + "deposition/base");
-		Texture deposition_connectors = class_235.method_615(path + "deposition/connectors");
-		Texture deposition_gloss = class_235.method_615(path + "deposition/gloss");
-		Texture deposition_glossMask = class_235.method_615(path + "deposition/gloss_mask");
+		path = "reductiveMetallurgy/textures/parts/deposition/";
+		Texture deposition_base = class_235.method_615(path + "base");
+		Texture deposition_connectors = class_235.method_615(path + "connectors");
+		Texture deposition_gloss = class_235.method_615(path + "gloss");
+		Texture deposition_glossMask = class_235.method_615(path + "gloss_mask");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
 		Texture[] proliferationSymbols = new Texture[5]{
@@ -241,12 +242,12 @@ public static class Glyphs
 			class_235.method_615(path + "symbol_lead_inactive"),
 			class_235.method_615(path + "symbol_lead_active")
 		};
+		Texture proliferationGlyph_symbols = class_235.method_615(path + "proliferator_symbols");
 
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 
 		Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
-		Texture calcinatorGlyph_symbols = class_238.field_1989.field_90.field_171;
 
 		Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
 		Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
@@ -465,7 +466,7 @@ public static class Glyphs
 
 			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
 			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
-			drawPartGraphic(renderer, calcinatorGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphic(renderer, proliferationGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
@@ -592,7 +593,7 @@ public static class Glyphs
 
 			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
 			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
-			drawPartGraphic(renderer, calcinatorGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphic(renderer, proliferationGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
