@@ -299,7 +299,7 @@ public class MainClass : QuintessentialMod
 					addColliderAtHex(part, hexRight);
 				}
 			}
-			else if (partType == Glyphs.ProliferationAmbi)
+			else if (partType == Glyphs.Proliferation)
 			{
 				HexIndex hexLeft = new HexIndex(0, 0);
 				HexIndex hexRight = new HexIndex(1, 0);
@@ -359,6 +359,7 @@ public class MainClass : QuintessentialMod
 						{
 							glyphNeedsToFire(partSimState);
 							playSound(sim_self, animismusActivate);
+							Wheel.DrawRavariFlash(SEB, part, hexSelect);
 							// take care of inputs
 							if (foundQuicksilverInput)
 							{
@@ -382,9 +383,6 @@ public class MainClass : QuintessentialMod
 						}
 					}
 				}
-
-
-
 			}
 			else if (partType == Glyphs.ProliferationLeft || partType == Glyphs.ProliferationRight)
 			{
@@ -451,86 +449,6 @@ public class MainClass : QuintessentialMod
 						// take care of outputs
 						partSimState.field_2744 = new AtomType[1] { atomSelect.field_2280 };
 						addColliderAtHex(part, hexOutput);
-					}
-				}
-			}
-			else if (partType == Glyphs.Proliferation)
-			{
-				HexIndex hexLeft = new HexIndex(0, 0);
-				HexIndex hexRight = new HexIndex(1, 0);
-				HexIndex hexUp = new HexIndex(0, 1);
-				HexIndex hexDown = new HexIndex(1, -1);
-
-				if (glyphIsFiring(partSimState))
-				{
-					spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
-					spawnAtomAtHex(part, hexRight, partSimState.field_2744[1]);
-				}
-				else if (
-					isConsumptionHalfstep
-					&& !maybeFindAtom(part, hexLeft, new List<Part>()).method_99(out _) // left output not blocked
-					&& !maybeFindAtom(part, hexRight, new List<Part>()).method_99(out _) // right output not blocked
-				)
-				{
-					AtomReference atomUp;
-					AtomReference atomDown;
-					bool foundAtomUp = maybeFindAtom(part, hexUp, gripperList).method_99(out atomUp)
-						&& !atomUp.field_2281 // a single atom
-						&& !atomUp.field_2282 // not held by a gripper
-					;
-					bool foundAtomDown = maybeFindAtom(part, hexDown, gripperList).method_99(out atomDown) // down atom exists
-						&& !atomDown.field_2281 // a single atom
-						&& !atomDown.field_2282 // not held by a gripper
-					;
-
-					bool proliferateUp = foundAtomUp && API.applyProliferationRule(atomUp.field_2280, out _);
-					bool proliferateDown = foundAtomDown && API.applyProliferationRule(atomDown.field_2280, out _);
-
-					if (proliferateUp ^ proliferateDown) // found metal input
-					{
-						// XOR, since proliferation takes precisely one Quicksilver (via atom or Ravari) and one NON-quicksilver atom
-						// so finding zero or two proliferable atoms is no good
-
-						HexIndex hexProliferate = proliferateUp ? hexUp : hexDown;
-						HexIndex hexQuicksilver = proliferateUp ? hexDown : hexUp;
-
-						AtomReference atomProlif = proliferateUp ? atomUp : atomDown;
-						AtomReference atomQuicksilver = proliferateUp ? atomDown : atomUp;
-						AtomReference atomDemotableRavari = default(AtomReference);
-						AtomType rejectionResult = default(AtomType);
-
-						bool foundQuicksilver = (proliferateUp ? foundAtomDown : foundAtomUp) && atomQuicksilver.field_2280 == API.quicksilverAtomType();
-
-						bool foundDemotableRavari =
-							Wheel.maybeFindRavariWheelAtom(sim_self, part, hexQuicksilver).method_99(out atomDemotableRavari)
-							&& API.applyRejectionRule(atomDemotableRavari.field_2280, out rejectionResult)
-						;
-
-						if (foundQuicksilver || foundDemotableRavari)
-						{
-							//fire the glyph!
-							Pair<AtomType, AtomType> prolifAtomTypePair;
-							API.applyProliferationRule(atomProlif.field_2280, out prolifAtomTypePair);
-							glyphNeedsToFire(partSimState);
-							playSound(sim_self, animismusActivate);
-
-							//take care of inputs
-							consumeAtomRef(atomProlif);
-							if (foundQuicksilver)
-							{
-								consumeAtomRef(atomQuicksilver);
-							}
-							else // foundDemotableRavari
-							{
-								changeAtomTypeOfMetal(atomDemotableRavari, rejectionResult);
-								Wheel.DrawRavariFlash(SEB, part, hexQuicksilver);
-							}
-
-							// take care of outputs
-							partSimState.field_2744 = new AtomType[2] { prolifAtomTypePair.Left, prolifAtomTypePair.Right };
-							addColliderAtHex(part, hexLeft);
-							addColliderAtHex(part, hexRight);
-						}
 					}
 				}
 			}

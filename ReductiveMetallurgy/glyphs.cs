@@ -17,7 +17,7 @@ using Texture = class_256;
 
 public static class Glyphs
 {
-	public static PartType Rejection, Deposition, Proliferation, ProliferationLeft, ProliferationRight, ProliferationAmbi;
+	public static PartType Rejection, Deposition, Proliferation, ProliferationLeft, ProliferationRight;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
@@ -166,19 +166,6 @@ public static class Glyphs
 			class_235.method_615(selectpath + "line_stroke")
 		);
 
-		Proliferation = makeGlyph(
-			"glyph-proliferation",
-			"Glyph of Proliferation",
-			"The glyph of proliferation consumes quicksilver and an atom of metal to generate another metal atom.",
-			40, new HexIndex[4] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(1, -1) }, API.perm_proliferation,
-			class_235.method_615(iconpath + "proliferation"),
-			class_235.method_615(iconpath + "proliferation_hover"),
-			class_238.field_1989.field_97.field_368,// diamond_glow
-			class_238.field_1989.field_97.field_369, // diamond_stroke
-													 //class_238.field_1989.field_97.field_386,// triple_glow
-													 //class_238.field_1989.field_97.field_387 // triple_stroke
-			true // only one!
-		);
 		ProliferationLeft = makeGlyph(
 			"glyph-proliferation-left",
 			"Glyph of Proliferation",
@@ -201,7 +188,7 @@ public static class Glyphs
 			class_238.field_1989.field_97.field_387, // triple_stroke
 			true // only one!
 		);
-		ProliferationAmbi = makeGlyph(
+		Proliferation = makeGlyph(
 			"glyph-proliferation-ambi",
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
@@ -218,9 +205,8 @@ public static class Glyphs
 		QApi.AddPartTypeToPanel(Rejection, projector);
 		QApi.AddPartTypeToPanel(Deposition, purifier);
 		QApi.AddPartTypeToPanel(Proliferation, purifier);
-		QApi.AddPartTypeToPanel(ProliferationLeft, purifier);
-		QApi.AddPartTypeToPanel(ProliferationRight, purifier);
-		QApi.AddPartTypeToPanel(ProliferationAmbi, purifier);
+		//QApi.AddPartTypeToPanel(ProliferationLeft, purifier);
+		//QApi.AddPartTypeToPanel(ProliferationRight, purifier);
 
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
@@ -235,13 +221,6 @@ public static class Glyphs
 		Texture deposition_glossMask = class_235.method_615(path + "gloss_mask");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
-		Texture[] proliferationSymbols = new Texture[5]{
-			class_235.method_615(path + "symbol_divider"),
-			class_235.method_615(path + "symbol_quicksilver_inactive"),
-			class_235.method_615(path + "symbol_quicksilver_active"),
-			class_235.method_615(path + "symbol_lead_inactive"),
-			class_235.method_615(path + "symbol_lead_active")
-		};
 		Texture proliferationGlyph_symbols = class_235.method_615(path + "proliferator_symbols");
 
 		// fetch vanilla textures
@@ -249,12 +228,12 @@ public static class Glyphs
 
 		Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
 
-		Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
-		Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
-		Texture animismus_connectorsShadows = class_238.field_1989.field_90.field_228.field_267;
-		Texture animismus_gloss = class_238.field_1989.field_90.field_228.field_268;
-		Texture animismus_glossMask = class_238.field_1989.field_90.field_228.field_269;
-		Texture animismus_input = class_238.field_1989.field_90.field_228.field_270;
+		//Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
+		//Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
+		//Texture animismus_connectorsShadows = class_238.field_1989.field_90.field_228.field_267;
+		//Texture animismus_gloss = class_238.field_1989.field_90.field_228.field_268;
+		//Texture animismus_glossMask = class_238.field_1989.field_90.field_228.field_269;
+		//Texture animismus_input = class_238.field_1989.field_90.field_228.field_270;
 		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
 		Texture animismus_ringShadow = class_238.field_1989.field_90.field_228.field_273;
@@ -271,7 +250,7 @@ public static class Glyphs
 		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
 		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
 		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
-		Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
+		//Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
 
 		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
 
@@ -355,87 +334,6 @@ public static class Glyphs
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
 
-		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
-		{
-			var interface2 = editor.method_507();
-			PartSimState partSimState = interface2.method_481(part);
-			var simTime = editor.method_504();
-
-			var originHex = new HexIndex(0, 0);
-			var leftHex = originHex;
-			var rightHex = new HexIndex(1, 0);
-			var upHex = new HexIndex(0, 1);
-			var downHex = new HexIndex(1, -1);
-			float partAngle = renderer.field_1798;
-			Vector2 base_offset = new Vector2(41f, 120f);
-
-			int irisIndex = irisFullArray.Length - 1;
-			float num = 0f;
-			bool flag = false;
-			if (partSimState.field_2743)
-			{
-				irisIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-				num = simTime;
-				flag = simTime > 0.5f;
-			}
-
-			List<AtomType> atomsOfferedAsInput = new List<AtomType>();
-			foreach (var hex in new HexIndex[2] { upHex, downHex })
-			{
-				Atom atom;
-				HexIndex key = part.method_1184(hex);
-				foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
-				{
-					if (molecule.method_1100().TryGetValue(key, out atom))
-						atomsOfferedAsInput.Add(atom.field_2275);
-				}
-			}
-
-			Texture[] symbolTextures = new Texture[3]
-			{
-				proliferationSymbols[0],
-				proliferationSymbols[ atomsOfferedAsInput.Contains(API.quicksilverAtomType()) ? 1 : 2],
-				proliferationSymbols[ atomsOfferedAsInput.Any(x => API.applyProliferationRule(x, out _ )) ? 3 : 4]
-			};
-
-			drawPartGraphic(renderer, animismus_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
-			drawPartGraphic(renderer, animismus_connectorsShadows, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-
-			foreach (var hex in new HexIndex[4] { leftHex, rightHex, upHex, downHex })
-			{
-				bool isInputHex = hex.R != 0;
-				drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
-				if (isInputHex)
-				{
-					drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					foreach (Texture texture in symbolTextures)
-						drawPartGraphic(renderer, texture, textureCenter(texture), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
-				}
-				else
-				{
-					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (partSimState.field_2743 && !flag)
-						drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
-					Texture irisFrame = irisFullArray[irisIndex];
-					drawPartGraphic(renderer, irisFrame, textureCenter(irisFrame), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
-					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (irisIndex == irisFullArray.Length - 1)
-					{
-						Texture tex = hex == leftHex ? projectionGlyph_leadSymbol : leadSymbolBowlDown;
-						drawPartGraphic(renderer, tex, textureCenter(tex), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
-					}
-					if (flag)
-					{
-						drawAtomIO(renderer, partSimState.field_2744[hex.Q], hex, num);
-					}
-				}
-			}
-
-			drawPartGraphic(renderer, animismus_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, animismus_gloss, animismus_glossMask, base_offset + new Vector2(-1f, 0f));
-		});
-
-
 		void DrawProliferationChiral(Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer, bool lefty)
 		{
 			var interface2 = editor.method_507();
@@ -496,7 +394,7 @@ public static class Glyphs
 		{
 			DrawProliferationChiral(part, pos, editor, renderer, false);
 		});
-		QApi.AddPartType(ProliferationAmbi, (part, pos, editor, renderer) =>
+		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
 		{
 			var interface2 = editor.method_507();
 			PartSimState partSimState = interface2.method_481(part);
@@ -632,9 +530,8 @@ public static class Glyphs
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(ProliferationLeft, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-		FTSIGCTU.MirrorTool.addRule(ProliferationRight, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-		FTSIGCTU.MirrorTool.addRule(ProliferationAmbi, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		//FTSIGCTU.MirrorTool.addRule(ProliferationLeft, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		//FTSIGCTU.MirrorTool.addRule(ProliferationRight, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
 	}
 }
