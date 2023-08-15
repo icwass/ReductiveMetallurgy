@@ -1,5 +1,6 @@
 Name: ReductiveMetallurgy
 Version: 0.3.0
+Icon: "reductiveMetallurgy/mod_icon"
 Title: Reductive Metallurgy
 Desc: Introduces glyphs and mechanisms that can demote metals.
 DLL: "ReductiveMetallurgy/bin/Debug/net452/ReductiveMetallurgy.dll"
