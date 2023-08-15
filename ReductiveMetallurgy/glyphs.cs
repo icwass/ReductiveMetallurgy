@@ -210,15 +210,18 @@ public static class Glyphs
 
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
-		Texture rejection_metalBowlTarget = class_235.method_615(path + "rejection_metal_bowl_target");
-		Texture rejection_quicksilverSymbol = class_235.method_615(path + "rejection_quicksilver_symbol");
-		Texture leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
+
+		path = "reductiveMetallurgy/textures/parts/rejection/";
+		Texture rejection_metalBowl = class_235.method_615(path + "output_bowl");
+		Texture rejection_metalBowlOverlay = class_235.method_615(path + "output_bowl_overlay");
+		Texture rejection_quicksilverSymbol = class_235.method_615(path + "quicksilver_symbol");
 
 		path = "reductiveMetallurgy/textures/parts/deposition/";
 		Texture deposition_base = class_235.method_615(path + "base");
 		Texture deposition_connectors = class_235.method_615(path + "connectors");
 		Texture deposition_gloss = class_235.method_615(path + "gloss");
 		Texture deposition_glossMask = class_235.method_615(path + "gloss_mask");
+		Texture deposition_leadSymbolInputDown = class_235.method_615(path + "lead_symbol_input_down");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
 		Texture proliferationGlyph_symbols = class_235.method_615(path + "proliferator_symbols");
@@ -274,8 +277,8 @@ public static class Glyphs
 
 			//draw quicksilver output
 			drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(outputHex), new Vector2(0.0f, -3f));
-			drawPartGraphicSpecular(renderer, projectionGlyph_metalBowl, textureCenter(projectionGlyph_metalBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-			drawPartGraphic(renderer, rejection_metalBowlTarget, textureCenter(rejection_metalBowlTarget), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphicSpecular(renderer, rejection_metalBowl, textureCenter(rejection_metalBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+			drawPartGraphic(renderer, rejection_metalBowlOverlay, textureCenter(rejection_metalBowlOverlay), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
 			drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, projectionGlyph_bond, base_offset + new Vector2(-73f, -37f), 0f, Vector2.Zero, Vector2.Zero);
@@ -329,7 +332,7 @@ public static class Glyphs
 				}
 			}
 			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
-			drawPartGraphic(renderer, leadSymbolInputDown, textureCenter(leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
+			drawPartGraphic(renderer, deposition_leadSymbolInputDown, textureCenter(deposition_leadSymbolInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, deposition_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
