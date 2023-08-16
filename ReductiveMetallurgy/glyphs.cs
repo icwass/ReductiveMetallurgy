@@ -169,7 +169,7 @@ public static class Glyphs
 			API.DepositionPermission
 		);
 		Proliferation = makeGlyph(
-			"glyph-proliferation-ambi", // NEED TO CHANGE THIS
+			"glyph-proliferation-ambi",
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
 			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
@@ -181,39 +181,11 @@ public static class Glyphs
 			true // only one!
 		);
 
-		/*
-		ProliferationLeft = makeGlyph(
-			"glyph-proliferation-left",
-			"Glyph of Proliferation",
-			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
-			class_235.method_615(iconpath + "proliferation"),
-			class_235.method_615(iconpath + "proliferation_hover"),
-			class_238.field_1989.field_97.field_386,// triple_glow
-			class_238.field_1989.field_97.field_387, // triple_stroke
-			true // only one!
-		);
-		ProliferationRight = makeGlyph(
-			"glyph-proliferation-right",
-			"Glyph of Proliferation",
-			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
-			class_235.method_615(iconpath + "proliferation"),
-			class_235.method_615(iconpath + "proliferation_hover"),
-			class_238.field_1989.field_97.field_386,// triple_glow
-			class_238.field_1989.field_97.field_387, // triple_stroke
-			true // only one!
-		);
-		*/
-
-
 		var projector = PartTypes.field_1778;
 		var purifier = PartTypes.field_1779;
 		QApi.AddPartTypeToPanel(Rejection, projector);
 		QApi.AddPartTypeToPanel(Deposition, purifier);
 		QApi.AddPartTypeToPanel(Proliferation, purifier);
-		//QApi.AddPartTypeToPanel(ProliferationLeft, purifier);
-		//QApi.AddPartTypeToPanel(ProliferationRight, purifier);
 
 		path = "reductiveMetallurgy/textures/parts/";
 		Texture leadSymbolBowlDown = class_235.method_615(path + "lead_symbol_bowl_down");
@@ -238,12 +210,6 @@ public static class Glyphs
 
 		Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
 
-		//Texture animismus_base = class_238.field_1989.field_90.field_228.field_265;
-		//Texture animismus_connectors = class_238.field_1989.field_90.field_228.field_266;
-		//Texture animismus_connectorsShadows = class_238.field_1989.field_90.field_228.field_267;
-		//Texture animismus_gloss = class_238.field_1989.field_90.field_228.field_268;
-		//Texture animismus_glossMask = class_238.field_1989.field_90.field_228.field_269;
-		//Texture animismus_input = class_238.field_1989.field_90.field_228.field_270;
 		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
 		Texture animismus_ringShadow = class_238.field_1989.field_90.field_228.field_273;
@@ -260,7 +226,6 @@ public static class Glyphs
 		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
 		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
 		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
-		//Texture purificationGlyph_leadSymbol = class_238.field_1989.field_90.field_257.field_363;
 
 		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
 
@@ -344,68 +309,6 @@ public static class Glyphs
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
 
-		/*
-		void DrawProliferationChiral(Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer, bool lefty)
-		{
-			var interface2 = editor.method_507();
-			PartSimState partSimState = interface2.method_481(part);
-			var simTime = editor.method_504();
-
-			var leftHex = new HexIndex(0, 0);
-			var rightHex = new HexIndex(1, 0);
-			var selectHex = new HexIndex(0, 1);
-
-			var inputHex = lefty ? leftHex : rightHex;
-			var outputHex = lefty ? rightHex : leftHex;
-			Vector2 base_offset = new Vector2(41f, 48f);
-
-			int index = irisFullArray.Length - 1;
-			float num = 0f;
-			bool flag = false;
-			if (partSimState.field_2743)
-			{
-				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-				num = simTime;
-				flag = (double)simTime > 0.5;
-			}
-
-			var angle = (lefty ? -120f : 120f) * (float)Math.PI / 180f;
-			var hexOffset = lefty ? new HexIndex(0, 1) : new HexIndex(1, 0);
-			drawPartGraphic(renderer, purificationGlyph_base, base_offset, angle, hexGraphicalOffset(hexOffset), new Vector2(-1f, -1f));
-
-			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
-			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
-			drawPartGraphic(renderer, proliferationGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
-
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
-
-			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
-			drawPartGraphic(renderer, projectionGlyph_quicksilverSymbol, textureCenter(projectionGlyph_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(inputHex), Vector2.Zero);
-			
-			drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-
-			if (partSimState.field_2743)
-			{
-				if (!flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
-			}
-			drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-			drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-
-			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, angle, hexGraphicalOffset(hexOffset), Vector2.Zero);
-			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f), hexOffset, angle);
-			if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
-		}
-		QApi.AddPartType(ProliferationLeft, (part, pos, editor, renderer) =>
-		{
-			DrawProliferationChiral(part, pos, editor, renderer, true);
-		});
-		QApi.AddPartType(ProliferationRight, (part, pos, editor, renderer) =>
-		{
-			DrawProliferationChiral(part, pos, editor, renderer, false);
-		});
-		*/
-
 		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
 		{
 			var interface2 = editor.method_507();
@@ -415,7 +318,6 @@ public static class Glyphs
 			var leftHex = new HexIndex(0, 0);
 			var rightHex = new HexIndex(1, 0);
 			var selectHex = new HexIndex(0, 1);
-
 
 			var currentCycle = 0;
 			if (editor.method_503() != enum_128.Stopped && editor.GetType() == typeof(SolutionEditorScreen))
@@ -515,12 +417,7 @@ public static class Glyphs
 				drawPartGraphic(renderer, projectionGlyph_quicksilverSymbol, textureCenter(projectionGlyph_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
 			}
 
-
-
-			if (partSimState.field_2743)
-			{
-				if (!flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
-			}
+			if (partSimState.field_2743 && !flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 
 			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
 			{
@@ -528,7 +425,6 @@ public static class Glyphs
 				drawPartGraphicSpecular(renderer, irisFullArray[thisIndex], textureCenter(irisFullArray[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 			}
-
 
 			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
@@ -543,7 +439,5 @@ public static class Glyphs
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-		//FTSIGCTU.MirrorTool.addRule(ProliferationLeft, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-		//FTSIGCTU.MirrorTool.addRule(ProliferationRight, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
 	}
 }
