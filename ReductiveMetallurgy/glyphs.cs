@@ -147,7 +147,7 @@ public static class Glyphs
 		selectpath = path + "select/";
 
 		Rejection = makeGlyph(
-			"glyph-rejection", // NEED TO CHANGE THIS
+			"reductive-metallurgy-rejection",
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
 			20, new HexIndex[2] { new HexIndex(0, 0), new HexIndex(1, 0) }, API.perm_rejection,
@@ -158,7 +158,7 @@ public static class Glyphs
 			API.RejectionPermission
 		);
 		Deposition = makeGlyph(
-			"glyph-deposition", // NEED TO CHANGE THIS
+			"reductive-metallurgy-deposition",
 			"Glyph of Deposition",
 			"The glyph of deposition can separate an atom of metal into two atoms of lower form.",
 			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) }, API.perm_deposition,
@@ -169,7 +169,7 @@ public static class Glyphs
 			API.DepositionPermission
 		);
 		Proliferation = makeGlyph(
-			"glyph-proliferation-ambi",
+			"reductive-metallurgy-proliferation",
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
 			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,

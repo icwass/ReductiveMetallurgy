@@ -35,8 +35,23 @@ public class MainClass : QuintessentialMod
 	// public main functions
 	public override void Load()
 	{
-		//
+		On.class_191.method_498 += patchPartSaveIDs;
 	}
+
+	private static Dictionary<string, string> patchMap = new()
+	{
+		{"glyph-rejection", "reductive-metallurgy-rejection"},
+		{"glyph-deposition", "reductive-metallurgy-deposition"},
+		{"glyph-proliferation-ambi", "reductive-metallurgy-proliferation"},
+		{"wheel-verrin", "reductive-metallurgy-ravari"},
+	};
+	private static Maybe<class_139> patchPartSaveIDs(On.class_191.orig_method_498 orig, string saveID)
+	{
+		if (patchMap.ContainsKey(saveID)) saveID = patchMap[saveID];
+		return orig(saveID);
+	}
+
+
 	public override void LoadPuzzleContent()
 	{
 		Glyphs.LoadContent();

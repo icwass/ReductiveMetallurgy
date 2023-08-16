@@ -104,7 +104,7 @@ public static class Wheel
 		string iconpath = "reductiveMetallurgy/textures/parts/icons/verrin";
 		Ravari = new PartType()
 		{
-			/*ID*/field_1528 = "wheel-verrin", // NEED TO CHANGE THIS
+			/*ID*/field_1528 = "reductive-metallurgy-ravari",
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
 			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged.", string.Empty),
 			/*Cost*/field_1531 = 30,
