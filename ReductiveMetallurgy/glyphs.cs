@@ -17,7 +17,8 @@ using Texture = class_256;
 
 public static class Glyphs
 {
-	public static PartType Rejection, Deposition, Proliferation, ProliferationLeft, ProliferationRight;
+	public static PartType Rejection, Deposition, Proliferation;
+	//public static PartType ProliferationLeft, ProliferationRight;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
@@ -27,11 +28,12 @@ public static class Glyphs
 		string desc,
 		int cost,
 		HexIndex[] footprint,
-		Permissions permissions,
+		Permissions permissions, // REMOVE LATER
 		Texture icon,
 		Texture hover,
 		Texture glow,
 		Texture stroke,
+		string permission,
 		bool onlyOne = false)
 	{
 		PartType ret = new PartType()
@@ -46,8 +48,9 @@ public static class Glyphs
 			/*Hover Icon*/field_1548 = hover,
 			/*Glow (Shadow)*/field_1549 = glow,
 			/*Stroke (Outline)*/field_1550 = stroke,
-			/*Permissions*/field_1551 = permissions,
+			/*Permissions*/field_1551 = permissions, // Permissions.None
 			/*Only One Allowed?*/field_1552 = onlyOne,
+			//CustomPermissionCheck = perms => perms.Contains(permission)
 		};
 		return ret;
 	}
@@ -103,7 +106,6 @@ public static class Glyphs
 		class_135.method_257().field_1693[1] = class_238.field_1989.field_71;
 		class_135.method_257().field_1695 = Vector2.Zero;
 	}
-
 	private static void drawAtomIO(class_195 renderer, AtomType atomType, HexIndex hex, float num)
 	{
 		Molecule molecule = Molecule.method_1121(atomType);
@@ -112,60 +114,74 @@ public static class Glyphs
 	}
 	#endregion
 
-
 	private static bool ContentLoaded = false;
 	public static void LoadContent()
 	{
 		if (ContentLoaded) return;
 		ContentLoaded = true;
 
-		//add rules for vanilla metals
-		API.addRejectionRule(API.goldAtomType()		, API.silverAtomType());
-		API.addRejectionRule(API.silverAtomType()	, API.copperAtomType());
-		API.addRejectionRule(API.copperAtomType()	, API.ironAtomType());
-		API.addRejectionRule(API.ironAtomType()		, API.tinAtomType());
-		API.addRejectionRule(API.tinAtomType()		, API.leadAtomType());
+		// add rules for vanilla metals
+		API.addRejectionRule(API.goldAtomType	, API.silverAtomType);
+		API.addRejectionRule(API.silverAtomType	, API.copperAtomType);
+		API.addRejectionRule(API.copperAtomType	, API.ironAtomType);
+		API.addRejectionRule(API.ironAtomType	, API.tinAtomType);
+		API.addRejectionRule(API.tinAtomType	, API.leadAtomType);
 
-		API.addDepositionRule(API.goldAtomType()	, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.ironAtomType()));
-		API.addDepositionRule(API.silverAtomType()	, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.tinAtomType()));
-		API.addDepositionRule(API.copperAtomType()	, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.tinAtomType()));
-		API.addDepositionRule(API.ironAtomType()	, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.leadAtomType()));
-		API.addDepositionRule(API.tinAtomType()		, new Pair<AtomType, AtomType>(API.leadAtomType()	, API.leadAtomType()));
+		API.addDepositionRule(API.goldAtomType	, API.ironAtomType	, API.ironAtomType);
+		API.addDepositionRule(API.silverAtomType, API.ironAtomType	, API.tinAtomType);
+		API.addDepositionRule(API.copperAtomType, API.tinAtomType	, API.tinAtomType);
+		API.addDepositionRule(API.ironAtomType	, API.tinAtomType	, API.leadAtomType);
+		API.addDepositionRule(API.tinAtomType	, API.leadAtomType	, API.leadAtomType);
 
-		API.addProliferationRule(API.goldAtomType()		, new Pair<AtomType, AtomType>(API.goldAtomType()	, API.ironAtomType()));
-		API.addProliferationRule(API.silverAtomType()	, new Pair<AtomType, AtomType>(API.silverAtomType()	, API.ironAtomType()));
-		API.addProliferationRule(API.copperAtomType()	, new Pair<AtomType, AtomType>(API.copperAtomType()	, API.tinAtomType()));
-		API.addProliferationRule(API.ironAtomType()		, new Pair<AtomType, AtomType>(API.ironAtomType()	, API.tinAtomType()));
-		API.addProliferationRule(API.tinAtomType()		, new Pair<AtomType, AtomType>(API.tinAtomType()	, API.leadAtomType()));
-		API.addProliferationRule(API.leadAtomType()		, new Pair<AtomType, AtomType>(API.leadAtomType()	, API.leadAtomType()));
+		API.addProliferationRule(API.goldAtomType);
+		API.addProliferationRule(API.silverAtomType);
+		API.addProliferationRule(API.copperAtomType);
+		API.addProliferationRule(API.ironAtomType);
+		API.addProliferationRule(API.tinAtomType);
+		API.addProliferationRule(API.leadAtomType);
 
+		// create parts
 		string path, iconpath, selectpath;
 		path = "reductiveMetallurgy/textures/";
 		iconpath = path + "parts/icons/";
 		selectpath = path + "select/";
 
 		Rejection = makeGlyph(
-			"glyph-rejection",
+			"glyph-rejection", // NEED TO CHANGE THIS
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
 			20, new HexIndex[2] { new HexIndex(0, 0), new HexIndex(1, 0) }, API.perm_rejection,
 			class_235.method_615(iconpath + "rejection"),
 			class_235.method_615(iconpath + "rejection_hover"),
-			class_238.field_1989.field_97.field_374,// double_glow
-			class_238.field_1989.field_97.field_375 // double_stroke
+			class_238.field_1989.field_97.field_374, // double_glow
+			class_238.field_1989.field_97.field_375, // double_stroke
+			API.RejectionPermission
 		);
-
 		Deposition = makeGlyph(
-			"glyph-deposition",
+			"glyph-deposition", // NEED TO CHANGE THIS
 			"Glyph of Deposition",
 			"The glyph of deposition can separate an atom of metal into two atoms of lower form.",
 			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) }, API.perm_deposition,
 			class_235.method_615(iconpath + "deposition"),
 			class_235.method_615(iconpath + "deposition_hover"),
 			class_235.method_615(selectpath + "line_glow"),
-			class_235.method_615(selectpath + "line_stroke")
+			class_235.method_615(selectpath + "line_stroke"),
+			API.DepositionPermission
+		);
+		Proliferation = makeGlyph(
+			"glyph-proliferation-ambi", // NEED TO CHANGE THIS
+			"Glyph of Proliferation",
+			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
+			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
+			class_235.method_615(iconpath + "proliferation"),
+			class_235.method_615(iconpath + "proliferation_hover"),
+			class_238.field_1989.field_97.field_386,// triple_glow
+			class_238.field_1989.field_97.field_387, // triple_stroke
+			API.ProliferationPermission,
+			true // only one!
 		);
 
+		/*
 		ProliferationLeft = makeGlyph(
 			"glyph-proliferation-left",
 			"Glyph of Proliferation",
@@ -188,17 +204,8 @@ public static class Glyphs
 			class_238.field_1989.field_97.field_387, // triple_stroke
 			true // only one!
 		);
-		Proliferation = makeGlyph(
-			"glyph-proliferation-ambi",
-			"Glyph of Proliferation",
-			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
-			class_235.method_615(iconpath + "proliferation"),
-			class_235.method_615(iconpath + "proliferation_hover"),
-			class_238.field_1989.field_97.field_386,// triple_glow
-			class_238.field_1989.field_97.field_387, // triple_stroke
-			true // only one!
-		);
+		*/
+
 
 		var projector = PartTypes.field_1778;
 		var purifier = PartTypes.field_1779;
@@ -337,6 +344,7 @@ public static class Glyphs
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
 
+		/*
 		void DrawProliferationChiral(Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer, bool lefty)
 		{
 			var interface2 = editor.method_507();
@@ -388,7 +396,6 @@ public static class Glyphs
 			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f), hexOffset, angle);
 			if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
 		}
-
 		QApi.AddPartType(ProliferationLeft, (part, pos, editor, renderer) =>
 		{
 			DrawProliferationChiral(part, pos, editor, renderer, true);
@@ -397,6 +404,8 @@ public static class Glyphs
 		{
 			DrawProliferationChiral(part, pos, editor, renderer, false);
 		});
+		*/
+
 		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
 		{
 			var interface2 = editor.method_507();
@@ -439,7 +448,7 @@ public static class Glyphs
 				HexIndex key = part.method_1184(hex);
 				foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
 				{
-					if (molecule.method_1100().TryGetValue(key, out atom) && atom.field_2275 == API.quicksilverAtomType())
+					if (molecule.method_1100().TryGetValue(key, out atom) && atom.field_2275 == API.quicksilverAtomType)
 					{
 						quicksilverAbove[hex == leftHex ? 0 : 1] = true;
 						break;
@@ -477,7 +486,7 @@ public static class Glyphs
 			int ioIndex = 0;
 			if (partSimState.field_2743)
 			{
-				ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType() ? 1 : 0;
+				ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType ? 1 : 0;
 				index[ioIndex] = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
 				num = simTime;
 				outputHex = ioIndex == 1 ? rightHex : leftHex;

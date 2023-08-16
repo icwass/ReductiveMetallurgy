@@ -29,12 +29,12 @@ public static class Wheel
 	static Molecule RavariMolecule()
 	{
 		Molecule molecule = new Molecule();
-		molecule.method_1105(new Atom(API.leadAtomType()), new HexIndex(0, 1));
-		molecule.method_1105(new Atom(API.tinAtomType()), new HexIndex(1, 0));
-		molecule.method_1105(new Atom(API.ironAtomType()), new HexIndex(1, -1));
-		molecule.method_1105(new Atom(API.copperAtomType()), new HexIndex(0, -1));
-		molecule.method_1105(new Atom(API.silverAtomType()), new HexIndex(-1, 0));
-		molecule.method_1105(new Atom(API.goldAtomType()), new HexIndex(-1, 1));
+		molecule.method_1105(new Atom(API.leadAtomType), new HexIndex(0, 1));
+		molecule.method_1105(new Atom(API.tinAtomType), new HexIndex(1, 0));
+		molecule.method_1105(new Atom(API.ironAtomType), new HexIndex(1, -1));
+		molecule.method_1105(new Atom(API.copperAtomType), new HexIndex(0, -1));
+		molecule.method_1105(new Atom(API.silverAtomType), new HexIndex(-1, 0));
+		molecule.method_1105(new Atom(API.goldAtomType), new HexIndex(-1, 1));
 		return molecule;
 	}
 	// ============================= //
@@ -104,7 +104,7 @@ public static class Wheel
 		string iconpath = "reductiveMetallurgy/textures/parts/icons/verrin";
 		Ravari = new PartType()
 		{
-			/*ID*/field_1528 = "wheel-verrin",
+			/*ID*/field_1528 = "wheel-verrin", // NEED TO CHANGE THIS
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
 			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged.", string.Empty),
 			/*Cost*/field_1531 = 30,
@@ -114,10 +114,11 @@ public static class Wheel
 			/*Berlo Atoms*/field_1544 = new Dictionary<HexIndex, AtomType>(),
 			/*Icon*/field_1547 = class_235.method_615(iconpath),
 			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
-			/*Permissions*/field_1551 = API.perm_ravari,
+			/*Permissions*/field_1551 = API.perm_ravari, // Permissions.None
 			/*Only One Allowed?*/field_1552 = true,
+			//CustomPermissionCheck = perms => perms.Contains(permission)
 		};
-		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType());
+		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType);
 
 		QApi.AddPartTypeToPanel(Ravari, Berlo);
 		QApi.AddPartType(Ravari, DrawRavariPart);

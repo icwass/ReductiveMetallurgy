@@ -171,7 +171,7 @@ public class MainClass : QuintessentialMod
 
 				bool foundQuicksilverInput =
 					maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
-					&& atomInput.field_2280 == API.quicksilverAtomType() // quicksilver atom
+					&& atomInput.field_2280 == API.quicksilverAtomType // quicksilver atom
 					&& !atomInput.field_2281 // a single atom
 					&& !atomInput.field_2282 // not held by a gripper
 				;
@@ -255,7 +255,7 @@ public class MainClass : QuintessentialMod
 					changeAtomTypeOfMetal(atomReject, rejectionResult);
 					if (outputNotBlocked)
 					{
-						spawnAtomAtHex(part, hexOutput, API.quicksilverAtomType());
+						spawnAtomAtHex(part, hexOutput, API.quicksilverAtomType);
 						Texture[] disposalFlashAnimation = class_238.field_1989.field_90.field_240;
 						Vector2 animationPosition = hexGraphicalOffset(part.method_1161() + hexOutput.Rotated(part.method_1163())) + new Vector2(80f, 0f);
 						SEB.field_3936.Add(new class_228(SEB, (enum_7)1, animationPosition, disposalFlashAnimation, 30f, Vector2.Zero, 0f));
@@ -274,7 +274,7 @@ public class MainClass : QuintessentialMod
 				HexIndex hexRight = new HexIndex(1, 0);
 
 				AtomReference atomDeposit;
-				Pair<AtomType, AtomType> depositAtomTypePair;
+				AtomType depositAtomTypeHi, depositAtomTypeLo;
 
 				if (glyphIsFiring(partSimState))
 				{
@@ -287,14 +287,14 @@ public class MainClass : QuintessentialMod
 					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomDeposit) // depositable atom exists
 					&& !atomDeposit.field_2281 // a single atom
 					&& !atomDeposit.field_2282 // not held by a gripper
-					&& API.applyDepositionRule(atomDeposit.field_2280, out depositAtomTypePair) // is depositable
+					&& API.applyDepositionRule(atomDeposit.field_2280, out depositAtomTypeHi, out depositAtomTypeLo) // is depositable
 				)
 				{
 					glyphNeedsToFire(partSimState);
 					playSound(sim_self, purificationActivate);
 					consumeAtomRef(atomDeposit);
 					// take care of outputs
-					partSimState.field_2744 = new AtomType[2] { depositAtomTypePair.Left, depositAtomTypePair.Right };
+					partSimState.field_2744 = new AtomType[2] { depositAtomTypeHi, depositAtomTypeLo };
 					addColliderAtHex(part, hexLeft);
 					addColliderAtHex(part, hexRight);
 				}
@@ -306,7 +306,7 @@ public class MainClass : QuintessentialMod
 				HexIndex hexSelect = new HexIndex(0, 1);
 				if (glyphIsFiring(partSimState))
 				{
-					if (partSimState.field_2744[1] == API.quicksilverAtomType())
+					if (partSimState.field_2744[1] == API.quicksilverAtomType)
 					{
 						spawnAtomAtHex(part, hexLeft, partSimState.field_2744[0]);
 					}
@@ -333,17 +333,17 @@ public class MainClass : QuintessentialMod
 
 						bool foundAtomSelect =
 							(maybeFindAtom(part, hexSelect, gripperList).method_99(out atomSelect)
-							&& API.applyProliferationRule(atomSelect.field_2280, out _)
+							&& API.applyProliferationRule(atomSelect.field_2280)
 							)
 							||
 							(Wheel.maybeFindRavariWheelAtom(sim_self, part, hexSelect).method_99(out atomSelect)
-							&& API.applyProliferationRule(atomSelect.field_2280, out _)
+							&& API.applyProliferationRule(atomSelect.field_2280)
 							)
 						;
 
 						bool foundQuicksilverInput =
 						maybeFindAtom(part, hexInput, gripperList).method_99(out atomInput)
-						&& atomInput.field_2280 == API.quicksilverAtomType() // quicksilver atom
+						&& atomInput.field_2280 == API.quicksilverAtomType // quicksilver atom
 						&& !atomInput.field_2281 // a single atom
 						&& !atomInput.field_2282 // not held by a gripper
 						;
@@ -373,17 +373,18 @@ public class MainClass : QuintessentialMod
 							// take care of outputs
 							if (lefty)
 							{
-								partSimState.field_2744 = new AtomType[2] { atomSelect.field_2280, API.quicksilverAtomType() };
+								partSimState.field_2744 = new AtomType[2] { atomSelect.field_2280, API.quicksilverAtomType };
 							}
 							else
 							{
-								partSimState.field_2744 = new AtomType[2] { API.quicksilverAtomType(), atomSelect.field_2280 };
+								partSimState.field_2744 = new AtomType[2] { API.quicksilverAtomType, atomSelect.field_2280 };
 							}
 							addColliderAtHex(part, hexOutput);
 						}
 					}
 				}
 			}
+			/*
 			else if (partType == Glyphs.ProliferationLeft || partType == Glyphs.ProliferationRight)
 			{
 				bool lefty = partType == Glyphs.ProliferationLeft;
@@ -452,6 +453,7 @@ public class MainClass : QuintessentialMod
 					}
 				}
 			}
+			*/
 		}
 
 		//----- BOILERPLATE-2 START -----//
