@@ -71,10 +71,10 @@ public static class Wheel
 	public static Maybe<AtomReference> maybeFindRavariWheelAtom(Sim sim_self, Part part, HexIndex offset)
 	{
 		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
-		var solution = sim_dyn.Get<SolutionEditorBase>("field_3818").method_502();
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var solution = SEB.method_502();
 		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821"); // QUINTESSENTIAL 0.4.0 - this field is now public
 
 		HexIndex key = part.method_1184(offset);
 		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
@@ -158,7 +158,7 @@ public static class Wheel
 	
 	static void DrawRavariPart (Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer)
 	{
-		// draw atoms, if the simulation is stopped
+		// draw atoms, if the simulation is stopped - otherwise, the running simulation will draw them
 		if (editor.method_503() == enum_128.Stopped)
 		{
 			drawRavariAtoms(editor, part, pos);

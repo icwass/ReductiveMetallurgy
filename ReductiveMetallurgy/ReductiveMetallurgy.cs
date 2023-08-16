@@ -97,24 +97,24 @@ public class MainClass : QuintessentialMod
 	{
 		//----- BOILERPLATE-1 START -----//
 		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818");
+		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818"); // QUINTESSENTIAL 0.4.0 - this field is now public
 		var solution = SEB.method_502();
 		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821");
-		var struct122List = sim_dyn.Get<List<Sim.struct_122>>("field_3826");
-		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823");
+		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var struct122List = sim_dyn.Get<List<Sim.struct_122>>("field_3826"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823"); // QUINTESSENTIAL 0.4.0 - this field is now public
 
 		// find all grippers that are holding molecules
 		// and make them temporarily release them
-		List<Part> gripperList = new List<Part>();
-		foreach (Part part in partList)
-		{
-			foreach (Part gripper in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))
-			{
-				gripperList.Add(gripper);
-				API.PrivateMethod<Sim>("method_1842").Invoke(sim_self, new object[] { gripper });
-			}
-		}
+		List<Part> gripperList = new List<Part>();															// \
+		foreach (Part part in partList)																		// |
+		{																									// |
+			foreach (Part gripper in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))   // |
+			{                                                                                               // | QUINTESSENTIAL 0.4.0 - can be replaced with:
+				gripperList.Add(gripper);																	// |	"List<Part> gripperList = Sim.HeldGrippers;"
+				//API.PrivateMethod<Sim>("method_1842").Invoke(sim_self, new object[] { gripper });			// |
+			}																								// |
+		}																									// /
 		//----- BOILERPLATE-1 END -----//
 
 		//define some helpers
@@ -398,7 +398,9 @@ public class MainClass : QuintessentialMod
 			}
 		}
 
+		/* // this boiler plate seems unnecessary - remove when i've verified we don't need it
 		//----- BOILERPLATE-2 START -----//
+
 		List<Molecule> source1 = new List<Molecule>();
 		foreach (Molecule molecule9 in moleculeList.Where(x=>x.field_2638))
 		{
@@ -447,14 +449,11 @@ public class MainClass : QuintessentialMod
 		
 		foreach (Part part in gripperList)
 		{
-			//expanded version of sim_self.method_1841(part);//give gripper a molecule back
-			PartSimState partSimState = partSimStates[part];
-			HexIndex field2724 = partSimState.field_2724;
-			partSimState.field_2728 = true;
-			partSimState.field_2729 = sim_self.method_1848(field2724);
+			API.PrivateMethod<Sim>("method_1841").Invoke(sim_self, new object[] { part });
 		}
 
 		//----- BOILERPLATE-2 END -----//
+		*/
 	}
 
 	public override void Unload()

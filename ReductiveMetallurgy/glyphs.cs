@@ -18,7 +18,6 @@ using Texture = class_256;
 public static class Glyphs
 {
 	public static PartType Rejection, Deposition, Proliferation;
-	//public static PartType ProliferationLeft, ProliferationRight;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
