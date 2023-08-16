@@ -44,12 +44,17 @@ public class MainClass : QuintessentialMod
 		Glyphs.LoadContent();
 		Wheel.LoadContent();
 
+		//QApi.AddPuzzlePermission(API.RejectionPermission, "Glyph of Rejection", "Reductive Metallurgy");
+		//QApi.AddPuzzlePermission(API.DepositionPermission, "Glyph of Deposition", "Reductive Metallurgy");
+		//QApi.AddPuzzlePermission(API.ProliferationPermission, "Glyph of Proliferation", "Reductive Metallurgy");
+		//QApi.AddPuzzlePermission(API.RavariPermission, "Ravari's Wheel", "Reductive Metallurgy");
+
 		//------------------------- HOOKING -------------------------//
 		hook_Sim_method_1832 = new Hook(API.PrivateMethod<Sim>("method_1832"), OnSimMethod1832);
 
 		IL.SolutionEditorBase.method_1984 += drawRavariWheelAtoms;
 	}
-	public static void drawRavariWheelAtoms(ILContext il)
+	private static void drawRavariWheelAtoms(ILContext il)
 	{
 		ILCursor cursor = new ILCursor(il);
 		// skip ahead to roughly where method_2015 is called
@@ -81,7 +86,7 @@ public class MainClass : QuintessentialMod
 		My_Method_1832(sim_self, isConsumptionHalfstep);
 		orig(sim_self, isConsumptionHalfstep);
 	}
-	public static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
+	private static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
 	{
 		//----- BOILERPLATE-1 START -----//
 		var sim_dyn = new DynamicData(sim_self);

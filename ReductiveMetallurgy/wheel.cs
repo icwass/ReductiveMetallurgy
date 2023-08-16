@@ -116,7 +116,7 @@ public static class Wheel
 			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
 			/*Permissions*/field_1551 = API.perm_ravari, // Permissions.None
 			/*Only One Allowed?*/field_1552 = true,
-			//CustomPermissionCheck = perms => perms.Contains(permission)
+			//CustomPermissionCheck = perms => perms.Contains(API.RavariPermission)
 		};
 		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType);
 

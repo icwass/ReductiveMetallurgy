@@ -83,22 +83,22 @@ public static class API
 	/// Indicates whether Rejection can be applied to an AtomType.
 	/// </summary>
 	/// <param name="input">The AtomType to check Rejection against.</param>
-	/// <param name="output">Will contain the result of Rejection, if it can be applied. Do not use the result if the function returns false.</param>
+	/// <param name="output">Will contain the result of Rejection, if it can be applied. Do not use output if the function returns false.</param>
 	/// <returns>True, if Rejection can be applied to the input AtomType. False, otherwise.</returns>
 	public static bool applyRejectionRule(AtomType input, out AtomType output) => applyTRule(input, rejectDict, out output);
 	/// <summary>
 	/// Indicates whether Deposition can be applied to an AtomType.
 	/// </summary>
 	/// <param name="input">The AtomType to check Deposition against.</param>
-	/// <param name="outputHi">Will contain the higher-metallicity result of Deposition, if it can be applied. Do not use the result if the function returns false.</param>
-	/// <param name="outputLo">Will contain the lower-metallicity result of Deposition, if it can be applied. Do not use the result if the function returns false.</param>
+	/// <param name="outputHi">Will contain the higher-metallicity result of Deposition, if it can be applied. Do not use outputHi if the function returns false.</param>
+	/// <param name="outputLo">Will contain the lower-metallicity result of Deposition, if it can be applied. Do not use outputLo if the function returns false.</param>
 	/// <returns>True, if Deposition can be applied to the input AtomType. False, otherwise.</returns>
 	public static bool applyDepositionRule(AtomType input, out AtomType outputHi, out AtomType outputLo)
 	{
 		Pair<AtomType, AtomType> output;
 		bool ret = applyTRule(input, depositDict, out output);
-		outputHi = output.Left;
-		outputLo = output.Right;
+		outputHi = ret ? output.Left : default(AtomType);
+		outputLo = ret ? output.Right : default(AtomType);
 		return ret;
 	}
 	/// <summary>
