@@ -70,11 +70,10 @@ public static class Wheel
 
 	public static Maybe<AtomReference> maybeFindRavariWheelAtom(Sim sim_self, Part part, HexIndex offset)
 	{
-		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var SEB = sim_self.field_3818;
 		var solution = SEB.method_502();
 		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var partSimStates = sim_self.field_3821;
 
 		HexIndex key = part.method_1184(offset);
 		foreach (var ravari in partList.Where(x => x.method_1159() == Ravari))
@@ -116,7 +115,7 @@ public static class Wheel
 			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
 			/*Permissions*/field_1551 = API.perm_ravari, // Permissions.None
 			/*Only One Allowed?*/field_1552 = true,
-			//CustomPermissionCheck = perms => perms.Contains(API.RavariPermission)
+			CustomPermissionCheck = perms => perms.Contains(API.RavariPermission)
 		};
 		foreach (var hex in HexIndex.AdjacentOffsets) Ravari.field_1544.Add(hex, API.quicksilverAtomType);
 

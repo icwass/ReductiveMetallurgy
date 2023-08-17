@@ -49,7 +49,7 @@ public static class Glyphs
 			/*Stroke (Outline)*/field_1550 = stroke,
 			/*Permissions*/field_1551 = permissions, // Permissions.None
 			/*Only One Allowed?*/field_1552 = onlyOne,
-			//CustomPermissionCheck = perms => perms.Contains(permission)
+			CustomPermissionCheck = perms => perms.Contains(permission)
 		};
 		return ret;
 	}

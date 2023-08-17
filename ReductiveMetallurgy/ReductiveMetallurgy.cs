@@ -57,10 +57,10 @@ public class MainClass : QuintessentialMod
 		Glyphs.LoadContent();
 		Wheel.LoadContent();
 
-		//QApi.AddPuzzlePermission(API.RejectionPermission, "Glyph of Rejection", "Reductive Metallurgy");
-		//QApi.AddPuzzlePermission(API.DepositionPermission, "Glyph of Deposition", "Reductive Metallurgy");
-		//QApi.AddPuzzlePermission(API.ProliferationPermission, "Glyph of Proliferation", "Reductive Metallurgy");
-		//QApi.AddPuzzlePermission(API.RavariPermission, "Ravari's Wheel", "Reductive Metallurgy");
+		QApi.AddPuzzlePermission(API.RejectionPermission, "Glyph of Rejection", "Reductive Metallurgy");
+		QApi.AddPuzzlePermission(API.DepositionPermission, "Glyph of Deposition", "Reductive Metallurgy");
+		QApi.AddPuzzlePermission(API.RavariPermission, "Ravari's Wheel", "Reductive Metallurgy");
+		QApi.AddPuzzlePermission(API.ProliferationPermission, "Glyph of Proliferation", "Reductive Metallurgy");
 
 		//------------------------- HOOKING -------------------------//
 		QApi.RunAfterCycle(My_Method_1832);
@@ -95,27 +95,13 @@ public class MainClass : QuintessentialMod
 
 	private static void My_Method_1832(Sim sim_self, bool isConsumptionHalfstep)
 	{
-		//----- BOILERPLATE-1 START -----//
-		var sim_dyn = new DynamicData(sim_self);
-		var SEB = sim_dyn.Get<SolutionEditorBase>("field_3818"); // QUINTESSENTIAL 0.4.0 - this field is now public
+		var SEB = sim_self.field_3818;
 		var solution = SEB.method_502();
 		var partList = solution.field_3919;
-		var partSimStates = sim_dyn.Get<Dictionary<Part, PartSimState>>("field_3821"); // QUINTESSENTIAL 0.4.0 - this field is now public
-		var struct122List = sim_dyn.Get<List<Sim.struct_122>>("field_3826"); // QUINTESSENTIAL 0.4.0 - this field is now public
-		var moleculeList = sim_dyn.Get<List<Molecule>>("field_3823"); // QUINTESSENTIAL 0.4.0 - this field is now public
-
-		// find all grippers that are holding molecules
-		// and make them temporarily release them
-		List<Part> gripperList = new List<Part>();															// \
-		foreach (Part part in partList)																		// |
-		{																									// |
-			foreach (Part gripper in part.field_2696.Where(x=>partSimStates[x].field_2729.method_1085()))   // |
-			{                                                                                               // | QUINTESSENTIAL 0.4.0 - can be replaced with:
-				gripperList.Add(gripper);																	// |	"List<Part> gripperList = Sim.HeldGrippers;"
-				//API.PrivateMethod<Sim>("method_1842").Invoke(sim_self, new object[] { gripper });			// |
-			}																								// |
-		}																									// /
-		//----- BOILERPLATE-1 END -----//
+		var partSimStates = sim_self.field_3821;
+		var struct122List = sim_self.field_3826;
+		var moleculeList = sim_self.field_3823;
+		var gripperList = sim_self.HeldGrippers;
 
 		//define some helpers
 
@@ -144,7 +130,7 @@ public class MainClass : QuintessentialMod
 			moleculeList.Add(molecule);
 		}
 
-		void consumeAtomRef(AtomReference atomRef)
+		void consumeAtomReference(AtomReference atomRef)
 		{
 			// delete the input atom
 			atomRef.field_2277.method_1107(atomRef.field_2278);
@@ -216,7 +202,7 @@ public class MainClass : QuintessentialMod
 					// handle input
 					if (foundQuicksilverInput)
 					{
-						consumeAtomRef(atomInput);
+						consumeAtomReference(atomInput);
 					}
 					else
 					{
@@ -304,7 +290,7 @@ public class MainClass : QuintessentialMod
 				{
 					glyphNeedsToFire(partSimState);
 					playSound(sim_self, purificationActivate);
-					consumeAtomRef(atomDeposit);
+					consumeAtomReference(atomDeposit);
 					// take care of outputs
 					partSimState.field_2744 = new AtomType[2] { depositAtomTypeHi, depositAtomTypeLo };
 					addColliderAtHex(part, hexLeft);
@@ -330,7 +316,8 @@ public class MainClass : QuintessentialMod
 				}
 				else if (isConsumptionHalfstep)
 				{
-					bool lefty = !maybeFindAtom(part, hexLeft, new List<Part>(), true).method_99(out _);// output not blocked. the extra TRUE means we're checking for berlo and ravari wheels, etc
+					// check if outputs are not blocked. the extra TRUE means we're checking for berlo and ravari wheels, etc
+					bool lefty = !maybeFindAtom(part, hexLeft, new List<Part>(), true).method_99(out _);
 					bool righty = !maybeFindAtom(part, hexRight, new List<Part>(), true).method_99(out _);
 					// we use an XOR condition because the glyph can only fire if one of the hexes is empty and the other is covered by a quicksilver source!
 					if (lefty ^ righty)
@@ -375,7 +362,7 @@ public class MainClass : QuintessentialMod
 							// take care of inputs
 							if (foundQuicksilverInput)
 							{
-								consumeAtomRef(atomInput);
+								consumeAtomReference(atomInput);
 							}
 							else // foundDemotableRavari
 							{
