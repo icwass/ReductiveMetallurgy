@@ -113,7 +113,6 @@ public static class Wheel
 			/*Berlo Atoms*/field_1544 = new Dictionary<HexIndex, AtomType>(),
 			/*Icon*/field_1547 = class_235.method_615(iconpath),
 			/*Hover Icon*/field_1548 = class_235.method_615(iconpath + "_hover"),
-			/*Permissions*/field_1551 = API.perm_ravari, // Permissions.None
 			/*Only One Allowed?*/field_1552 = true,
 			CustomPermissionCheck = perms => perms.Contains(API.RavariPermission)
 		};

@@ -451,7 +451,6 @@ public class MainClass : QuintessentialMod
 	//------------------------- END HOOKING -------------------------//
 	public override void PostLoad()
 	{
-		On.PuzzleEditorScreen.method_50 += PES_Method_50;
 		On.SolutionEditorBase.method_1997 += DrawPartSelectionGlows;
 
 		//optional dependencies
@@ -467,18 +466,9 @@ public class MainClass : QuintessentialMod
 		}
 	}
 
-	public void PES_Method_50(On.PuzzleEditorScreen.orig_method_50 orig, PuzzleEditorScreen pes_self, float param_4993)
-	{
-		orig(pes_self, param_4993);
-		API.drawPermissionCheckboxes(pes_self);
-	}
 	public void DrawPartSelectionGlows(On.SolutionEditorBase.orig_method_1997 orig, SolutionEditorBase seb_self, Part part, Vector2 pos, float alpha)
 	{
-		if (part.method_1159() == Wheel.Ravari)
-		{
-			Wheel.drawSelectionGlow(seb_self, part, pos, alpha);
-		}
-
+		if (part.method_1159() == Wheel.Ravari) Wheel.drawSelectionGlow(seb_self, part, pos, alpha);
 		orig(seb_self, part, pos, alpha);
 	}
 }

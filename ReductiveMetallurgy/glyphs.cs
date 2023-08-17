@@ -27,7 +27,6 @@ public static class Glyphs
 		string desc,
 		int cost,
 		HexIndex[] footprint,
-		Permissions permissions, // REMOVE LATER
 		Texture icon,
 		Texture hover,
 		Texture glow,
@@ -47,7 +46,6 @@ public static class Glyphs
 			/*Hover Icon*/field_1548 = hover,
 			/*Glow (Shadow)*/field_1549 = glow,
 			/*Stroke (Outline)*/field_1550 = stroke,
-			/*Permissions*/field_1551 = permissions, // Permissions.None
 			/*Only One Allowed?*/field_1552 = onlyOne,
 			CustomPermissionCheck = perms => perms.Contains(permission)
 		};
@@ -149,7 +147,7 @@ public static class Glyphs
 			"reductive-metallurgy-rejection",
 			"Glyph of Rejection",
 			"The glyph of rejection extracts quicksilver to demote an atom of metal to a lower form.",
-			20, new HexIndex[2] { new HexIndex(0, 0), new HexIndex(1, 0) }, API.perm_rejection,
+			20, new HexIndex[2] { new HexIndex(0, 0), new HexIndex(1, 0) },
 			class_235.method_615(iconpath + "rejection"),
 			class_235.method_615(iconpath + "rejection_hover"),
 			class_238.field_1989.field_97.field_374, // double_glow
@@ -160,7 +158,7 @@ public static class Glyphs
 			"reductive-metallurgy-deposition",
 			"Glyph of Deposition",
 			"The glyph of deposition can separate an atom of metal into two atoms of lower form.",
-			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) }, API.perm_deposition,
+			20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) },
 			class_235.method_615(iconpath + "deposition"),
 			class_235.method_615(iconpath + "deposition_hover"),
 			class_235.method_615(selectpath + "line_glow"),
@@ -171,7 +169,7 @@ public static class Glyphs
 			"reductive-metallurgy-proliferation",
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) }, API.perm_proliferation,
+			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) },
 			class_235.method_615(iconpath + "proliferation"),
 			class_235.method_615(iconpath + "proliferation_hover"),
 			class_238.field_1989.field_97.field_386,// triple_glow

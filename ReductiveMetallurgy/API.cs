@@ -10,48 +10,16 @@ using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
-using Permissions = enum_149;
 using AtomTypes = class_175;
 
 public static class API
 {
-	public static Permissions perm_rejection = (Permissions)	0x00080000; // REMOVE LATER
-	public static Permissions perm_deposition = (Permissions)	0x00100000; // REMOVE LATER
-	public static Permissions perm_proliferation = (Permissions)0x00200000; // REMOVE LATER
-	public static Permissions perm_ravari = (Permissions)		0x20000000; // REMOVE LATER
-
 	public const string RejectionPermission = "ReductiveMetallurgy:rejection";
 	public const string DepositionPermission = "ReductiveMetallurgy:deposition";
 	public const string ProliferationPermission = "ReductiveMetallurgy:proliferation";
 	public const string RavariPermission = "ReductiveMetallurgy:ravari";
 
 	public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-
-	private static void drawAndExecutePermissionCheckbox(PuzzleEditorScreen pes_self, Vector2 position, string label, Permissions perms)
-	{
-		var pes_dyn = new DynamicData(pes_self);
-		var maybePuzzle = pes_dyn.Get<Maybe<Puzzle>>("field_2789");
-		if (GameLogic.field_2434.method_938() is MoleculeEditorScreen
-			|| GameLogic.field_2434.method_952<PuzzleInfoScreen>()
-			|| !maybePuzzle.method_1085()
-		) return;
-		
-		var puzzle = maybePuzzle.method_1087();
-		API.PrivateMethod<PuzzleEditorScreen>("method_1261").Invoke(pes_self, new object[] { position, label, perms, puzzle });
-	}
-	public static void drawPermissionCheckboxes(PuzzleEditorScreen pes_self)
-	{
-		Vector2 base_position = new Vector2(1516f, 922f);
-		base_position = (class_115.field_1433 / 2 - base_position / 2 + new Vector2(-2f, -11f)).Rounded();
-		base_position = base_position + new Vector2(494f, 184f);
-
-		Vector2 offset(float x, float y) => new Vector2(236f * x, -37f * y);
-
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0, -1), "Rejection", API.perm_rejection);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(0.5f, -1), "Deposition", API.perm_deposition);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3, -1), "Ravari", API.perm_ravari);
-		drawAndExecutePermissionCheckbox(pes_self, base_position + offset(3.5f, -1), "Proliferation", API.perm_proliferation);
-	}
 
 	#region atomtype getters
 	public static AtomType quicksilverAtomType => AtomTypes.field_1680;
