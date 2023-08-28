@@ -197,9 +197,9 @@ public static class Glyphs
 		Texture deposition_connectors = class_235.method_615(path + "connectors");
 		Texture deposition_gloss = class_235.method_615(path + "gloss");
 		Texture deposition_glossMask = class_235.method_615(path + "gloss_mask");
-		Texture deposition_leadInputDown = class_235.method_615(path + "lead_input_down");
-		Texture deposition_leadSymbolUp = class_235.method_615(path + "lead_symbol_up");
-		Texture deposition_leadSymbolDown = class_235.method_615(path + "lead_symbol_down");
+		Texture deposition_inputSymbol = class_235.method_615(path + "input_symbol");
+		Texture deposition_outputSymbolUp = class_235.method_615(path + "output_symbol_up");
+		Texture deposition_outputSymbolDown = class_235.method_615(path + "output_symbol_down");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
 		Texture proliferationGlyph_symbols = class_235.method_615(path + "proliferator_symbols");
@@ -294,7 +294,7 @@ public static class Glyphs
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (index == irisFullArray.Length - 1)
 				{
-					Texture tex = hex == leftHex ? deposition_leadSymbolUp : deposition_leadSymbolDown;
+					Texture tex = hex == leftHex ? deposition_outputSymbolUp : deposition_outputSymbolDown;
 					drawPartGraphic(renderer, tex, textureCenter(tex), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 				}
 				if (flag)
@@ -303,7 +303,7 @@ public static class Glyphs
 				}
 			}
 			drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
-			drawPartGraphic(renderer, deposition_leadInputDown, textureCenter(deposition_leadInputDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
+			drawPartGraphic(renderer, deposition_inputSymbol, textureCenter(deposition_inputSymbol), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, deposition_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
