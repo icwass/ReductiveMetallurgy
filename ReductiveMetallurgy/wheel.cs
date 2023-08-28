@@ -141,17 +141,7 @@ public static class Wheel
 
 	private static void LoadTextureResources()
 	{
-		string dir = "reductiveMetallurgy/textures/parts/";
-		Texture[] fetchTextureArray(int length, string path)
-		{
-			var ret = new Texture[length];
-			for (int i = 0; i < ret.Length; i++)
-			{
-				ret[i] = class_235.method_615(dir + path + (i + 1).ToString("0000"));
-			}
-			return ret;
-		}
-		RavariFlashAnimation = fetchTextureArray(10, "ravari_flash.array/flash_");
+		RavariFlashAnimation = MainClass.fetchTextureArray(10, "reductiveMetallurgy/textures/parts/ravari_flash.array/flash_");
 	}
 	
 	static void DrawRavariPart (Part part, Vector2 pos, SolutionEditorBase editor, class_195 renderer)

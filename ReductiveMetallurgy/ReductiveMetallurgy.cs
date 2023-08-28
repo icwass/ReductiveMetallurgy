@@ -31,6 +31,16 @@ public class MainClass : QuintessentialMod
 	//drawing helpers
 	public static Vector2 hexGraphicalOffset(HexIndex hex) => class_187.field_1742.method_492(hex);
 
+	public static Texture[] fetchTextureArray(int length, string path)
+	{
+		var ret = new Texture[length];
+		for (int i = 0; i < ret.Length; i++)
+		{
+			ret[i] = class_235.method_615(path + (i + 1).ToString("0000"));
+		}
+		return ret;
+	}
+
 
 	// public main functions
 	public override void Load()
@@ -358,7 +368,7 @@ public class MainClass : QuintessentialMod
 						{
 							glyphNeedsToFire(partSimState);
 							playSound(sim_self, animismusActivate);
-							Wheel.DrawRavariFlash(SEB, part, hexSelect);
+							Glyphs.DrawSelectorFlash(SEB, part, hexSelect);
 							// take care of inputs
 							if (foundQuicksilverInput)
 							{

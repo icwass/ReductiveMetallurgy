@@ -18,6 +18,7 @@ using Texture = class_256;
 public static class Glyphs
 {
 	public static PartType Rejection, Deposition, Proliferation;
+	static Texture[] ProliferationFlashAnimation;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
@@ -50,6 +51,10 @@ public static class Glyphs
 			CustomPermissionCheck = perms => perms.Contains(permission)
 		};
 		return ret;
+	}
+	public static void DrawSelectorFlash(SolutionEditorBase SEB, Part part, HexIndex hex)
+	{
+		SEB.field_3935.Add(new class_228(SEB, (enum_7)1, MainClass.hexGraphicalOffset(hex.Rotated(part.method_1163()) + part.method_1161()), ProliferationFlashAnimation, 30f, Vector2.Zero, 0f));
 	}
 
 	#region drawingHelpers
@@ -186,11 +191,12 @@ public static class Glyphs
 
 		path = "reductiveMetallurgy/textures/parts/rejection/";
 		Texture rejection_inputBowl = class_235.method_615(path + "input_bowl");
-		Texture rejection_outputBowl = class_235.method_615(path + "output_bowl");
-		Texture rejection_metalBowlOverlay = class_235.method_615(path + "output_bowl_overlay");
-		Texture rejection_quicksilverSymbol = class_235.method_615(path + "quicksilver_symbol");
+		Texture rejection_gloss = class_235.method_615(path + "gloss");
 		Texture rejection_glossMask = class_235.method_615(path + "gloss_mask");
 		Texture rejection_leadSymbolDown = class_235.method_615(path + "lead_symbol_down");
+		Texture rejection_metalBowlOverlay = class_235.method_615(path + "output_bowl_overlay");
+		Texture rejection_outputBowl = class_235.method_615(path + "output_bowl");
+		Texture rejection_quicksilverSymbol = class_235.method_615(path + "quicksilver_symbol");
 
 		path = "reductiveMetallurgy/textures/parts/deposition/";
 		Texture deposition_base = class_235.method_615(path + "base");
@@ -202,12 +208,20 @@ public static class Glyphs
 		Texture deposition_outputSymbolDown = class_235.method_615(path + "output_symbol_down");
 
 		path = "reductiveMetallurgy/textures/parts/proliferation/";
-		Texture proliferationGlyph_symbols = class_235.method_615(path + "proliferator_symbols");
+		Texture proliferationGlyph_base = class_235.method_615(path + "base");
+		Texture proliferationGlyph_connectors = class_235.method_615(path + "connectors");
+		Texture proliferationGlyph_gloss = class_235.method_615(path + "gloss");
+		Texture proliferationGlyph_glossMask = class_235.method_615(path + "gloss_mask");
+		Texture proliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
+		Texture proliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
+		Texture proliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
+
+		ProliferationFlashAnimation = MainClass.fetchTextureArray(10, "reductiveMetallurgy/textures/parts/proliferation_flash.array/flash_");
 
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 		
-		Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
+		//Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
 		
 		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
@@ -215,19 +229,19 @@ public static class Glyphs
 		
 		Texture projectionGlyph_base = class_238.field_1989.field_90.field_255.field_288;
 		Texture projectionGlyph_bond = class_238.field_1989.field_90.field_255.field_289;
-		//Texture projectionGlyph_glossMask = class_238.field_1989.field_90.field_255.field_290;
-		//Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
-		//Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
+		////Texture projectionGlyph_glossMask = class_238.field_1989.field_90.field_255.field_290;
+		////Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
+		////Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
-		Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
+		//Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
 		
-		Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
-		Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
-		Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
-		Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
+		//Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
+		//Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
+		//Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
+		//Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
 
 		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
-
+		
 		QApi.AddPartType(Rejection, (part, pos, editor, renderer) =>
 		{
 			PartSimState partSimState = editor.method_507().method_481(part);
@@ -253,7 +267,7 @@ public static class Glyphs
 			drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, projectionGlyph_bond, base_offset + new Vector2(-73f, -37f), 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, purificationGlyph_gloss, rejection_glossMask, base_offset);
+			drawPartGloss(renderer, rejection_gloss, rejection_glossMask, base_offset);
 		});
 
 		QApi.AddPartType(Deposition, (part, pos, editor, renderer) =>
@@ -400,11 +414,11 @@ public static class Glyphs
 			}
 
 			Vector2 base_offset = new Vector2(41f, 48f);
-			drawPartGraphic(renderer, purificationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			drawPartGraphic(renderer, proliferationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 
 			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
-			drawPartGraphicSpecular(renderer, calcinatorGlyph_bowl, textureCenter(calcinatorGlyph_bowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
-			drawPartGraphic(renderer, proliferationGlyph_symbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphicSpecular(renderer, proliferationGlyph_selectorBowl, textureCenter(proliferationGlyph_selectorBowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
+			drawPartGraphic(renderer, proliferationGlyph_selectorSymbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
 
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
@@ -413,7 +427,7 @@ public static class Glyphs
 			{
 				drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphic(renderer, projectionGlyph_quicksilverSymbol, textureCenter(projectionGlyph_quicksilverSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphic(renderer, proliferationGlyph_inputSymbol, textureCenter(proliferationGlyph_inputSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
 			}
 
 			if (partSimState.field_2743 && !flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
@@ -425,12 +439,10 @@ public static class Glyphs
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 			}
 
-			drawPartGraphic(renderer, purificationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, purificationGlyph_gloss, purificationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+			drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+			drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
 			if (flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 		});
-
-
 	}
 
 	public static void LoadMirrorRules()
