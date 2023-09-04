@@ -18,7 +18,7 @@ using Texture = class_256;
 public static class Glyphs
 {
 	public static PartType Rejection, Deposition, Proliferation;
-	static Texture[] ProliferationFlashAnimation;
+	static Texture[] ProliferationFlashAnimation, ProliferationIrisFrames;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
 
@@ -213,10 +213,12 @@ public static class Glyphs
 		Texture proliferationGlyph_gloss = class_235.method_615(path + "gloss");
 		Texture proliferationGlyph_glossMask = class_235.method_615(path + "gloss_mask");
 		Texture proliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
+		Texture proliferationGlyph_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture proliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
 		Texture proliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
 
 		ProliferationFlashAnimation = MainClass.fetchTextureArray(10, "reductiveMetallurgy/textures/parts/proliferation_flash.array/flash_");
+		ProliferationIrisFrames = MainClass.fetchTextureArray(16, "reductiveMetallurgy/textures/parts/proliferation_iris.array/iris_full_");
 
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
@@ -393,24 +395,31 @@ public static class Glyphs
 			var inputHex = lefty ? leftHex : rightHex;
 			var outputHex = lefty ? rightHex : leftHex;
 
-			int[] index = new int[2] { irisFullArray.Length - 1, irisFullArray.Length - 1 };
+
+			int[] index = new int[2] { ProliferationIrisFrames.Length - 1, ProliferationIrisFrames.Length - 1 };
 			index[lefty ? 0 : 1] = 0;
 
 			float num = 0f;
 			bool flag = false;
 			int ioIndex = 0;
+
+			int convertIntervalToFrameIndex(float start, float end)
+			{
+				return class_162.method_404((int)(class_162.method_411(start, end, simTime) * ProliferationIrisFrames.Length), 0, ProliferationIrisFrames.Length - 1);
+			}
+
 			if (partSimState.field_2743)
 			{
 				ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType ? 1 : 0;
-				index[ioIndex] = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				index[ioIndex] = convertIntervalToFrameIndex(1f, -1f);
 				num = simTime;
 				outputHex = ioIndex == 1 ? rightHex : leftHex;
 				flag = (double)simTime > 0.5;
 			}
 			else
 			{
-				index[0] = class_162.method_404((int)(class_162.method_411(prevState[0]/ 2f, currentLeftState - prevState[0] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-				index[1] = class_162.method_404((int)(class_162.method_411(prevState[1]/ 2f, currentRightState - prevState[1] / 2f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+				index[0] = convertIntervalToFrameIndex(prevState[0] / 2f, currentLeftState - prevState[0] / 2f);
+				index[1] = convertIntervalToFrameIndex(prevState[1] / 2f, currentRightState - prevState[1] / 2f);
 			}
 
 			Vector2 base_offset = new Vector2(41f, 48f);
@@ -435,8 +444,8 @@ public static class Glyphs
 			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
 			{
 				var thisIndex = index[hex == leftHex ? 0 : 1];
-				drawPartGraphicSpecular(renderer, irisFullArray[thisIndex], textureCenter(irisFullArray[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphicSpecular(renderer, ProliferationIrisFrames[thisIndex], textureCenter(ProliferationIrisFrames[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphicSpecular(renderer, proliferationGlyph_outputAboveIris, textureCenter(proliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 			}
 
 			drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
