@@ -213,7 +213,7 @@ public static class Glyphs
 		Texture proliferationGlyph_gloss = class_235.method_615(path + "gloss");
 		Texture proliferationGlyph_glossMask = class_235.method_615(path + "gloss_mask");
 		Texture proliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
-		Texture proliferationGlyph_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
+		Texture proliferationGlyph_outputAboveIris = class_235.method_615(path + "output_above_iris");
 		Texture proliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
 		Texture proliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
 
