@@ -1,14 +1,14 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
-using MonoMod.Utils;
+//using MonoMod.RuntimeDetour;
+//using MonoMod.Utils;
 using Quintessential;
-using Quintessential.Settings;
-using SDL2;
+//using Quintessential.Settings;
+//using SDL2;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
+//using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
@@ -41,26 +41,11 @@ public class MainClass : QuintessentialMod
 		return ret;
 	}
 
-
 	// public main functions
 	public override void Load()
 	{
-		On.class_191.method_498 += patchPartSaveIDs;
+		//
 	}
-
-	private static Dictionary<string, string> patchMap = new()
-	{
-		{"glyph-rejection", "reductive-metallurgy-rejection"},
-		{"glyph-deposition", "reductive-metallurgy-deposition"},
-		{"glyph-proliferation-ambi", "reductive-metallurgy-proliferation"},
-		{"wheel-verrin", "reductive-metallurgy-ravari"},
-	};
-	private static Maybe<class_139> patchPartSaveIDs(On.class_191.orig_method_498 orig, string saveID)
-	{
-		if (patchMap.ContainsKey(saveID)) saveID = patchMap[saveID];
-		return orig(saveID);
-	}
-
 
 	public override void LoadPuzzleContent()
 	{
@@ -394,63 +379,6 @@ public class MainClass : QuintessentialMod
 				}
 			}
 		}
-
-		/* // this boiler plate seems unnecessary - remove when i've verified we don't need it
-		//----- BOILERPLATE-2 START -----//
-
-		List<Molecule> source1 = new List<Molecule>();
-		foreach (Molecule molecule9 in moleculeList.Where(x=>x.field_2638))
-		{
-			HashSet<HexIndex> source2 = new HashSet<HexIndex>(molecule9.method_1100().Keys);
-			Queue<HexIndex> hexIndexQueue = new Queue<HexIndex>();
-			while (source2.Count > 0)
-			{
-				if (hexIndexQueue.Count == 0)
-				{
-					HexIndex key = source2.First<HexIndex>();
-					source2.Remove(key);
-					hexIndexQueue.Enqueue(key);
-					source1.Add(new Molecule());
-					source1.Last().method_1105(molecule9.method_1100()[key], key);
-				}
-				HexIndex hexIndex = hexIndexQueue.Dequeue();
-				foreach (class_277 class277 in (IEnumerable<class_277>)molecule9.method_1101())
-				{
-					Maybe<HexIndex> maybe = (Maybe<HexIndex>)struct_18.field_1431;
-					if (class277.field_2187 == hexIndex)
-						maybe = (Maybe<HexIndex>)class277.field_2188;
-					else if (class277.field_2188 == hexIndex)
-						maybe = (Maybe<HexIndex>)class277.field_2187;
-					if (maybe.method_1085() && source2.Contains(maybe.method_1087()))
-					{
-						source2.Remove(maybe.method_1087());
-						hexIndexQueue.Enqueue(maybe.method_1087());
-						source1.Last<Molecule>().method_1105(molecule9.method_1100()[maybe.method_1087()], maybe.method_1087());
-					}
-				}
-			}
-			foreach (class_277 class277 in (IEnumerable<class_277>)molecule9.method_1101())
-			{
-				foreach (Molecule molecule10 in source1)
-				{
-					if (molecule10.method_1100().ContainsKey(class277.field_2187))
-					{
-						molecule10.method_1111(class277.field_2186, class277.field_2187, class277.field_2188);
-						break;
-					}
-				}
-			}
-		}
-		moleculeList.RemoveAll(Sim.class_301.field_2479 ?? (mol => mol.field_2638));
-		moleculeList.AddRange(source1);
-		
-		foreach (Part part in gripperList)
-		{
-			API.PrivateMethod<Sim>("method_1841").Invoke(sim_self, new object[] { part });
-		}
-
-		//----- BOILERPLATE-2 END -----//
-		*/
 	}
 
 	public override void Unload()

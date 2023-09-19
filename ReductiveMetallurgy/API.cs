@@ -1,8 +1,8 @@
-﻿using MonoMod.RuntimeDetour;
-using MonoMod.Utils;
+﻿//using MonoMod.RuntimeDetour;
+//using MonoMod.Utils;
 using Quintessential;
-using Quintessential.Settings;
-using SDL2;
+//using Quintessential.Settings;
+//using SDL2;
 using System;
 using System.Linq;
 using System.Collections.Generic;

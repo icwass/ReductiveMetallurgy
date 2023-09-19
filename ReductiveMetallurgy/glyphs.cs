@@ -1,17 +1,16 @@
-﻿using MonoMod.RuntimeDetour;
+﻿//using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using Quintessential;
-using Quintessential.Settings;
-using SDL2;
-using System;
+//using Quintessential.Settings;
+//using SDL2;
+//using System;
 using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
+//using System.Collections.Generic;
+//using System.Reflection;
 
 namespace ReductiveMetallurgy;
 
 using PartType = class_139;
-using Permissions = enum_149;
 using PartTypes = class_191;
 using Texture = class_256;
 
@@ -223,24 +222,13 @@ public static class Glyphs
 		// fetch vanilla textures
 		Texture bonderShadow = class_238.field_1989.field_90.field_164;
 		
-		//Texture calcinatorGlyph_bowl = class_238.field_1989.field_90.field_170;
-		
 		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
 		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
 		Texture animismus_ringShadow = class_238.field_1989.field_90.field_228.field_273;
 		
 		Texture projectionGlyph_base = class_238.field_1989.field_90.field_255.field_288;
 		Texture projectionGlyph_bond = class_238.field_1989.field_90.field_255.field_289;
-		////Texture projectionGlyph_glossMask = class_238.field_1989.field_90.field_255.field_290;
-		////Texture projectionGlyph_leadSymbol = class_238.field_1989.field_90.field_255.field_291;
-		////Texture projectionGlyph_metalBowl = class_238.field_1989.field_90.field_255.field_292;
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
-		//Texture projectionGlyph_quicksilverSymbol = class_238.field_1989.field_90.field_255.field_294;
-		
-		//Texture purificationGlyph_base = class_238.field_1989.field_90.field_257.field_359;
-		//Texture purificationGlyph_connectors = class_238.field_1989.field_90.field_257.field_360;
-		//Texture purificationGlyph_gloss = class_238.field_1989.field_90.field_257.field_361;
-		//Texture purificationGlyph_glossMask = class_238.field_1989.field_90.field_257.field_362;
 
 		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
 		
