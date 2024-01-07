@@ -294,7 +294,7 @@ public static class Glyphs
 				{
 					drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 				}
-				drawPartGraphicSpecular(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+				drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (index == irisFullArray.Length - 1)
 				{
