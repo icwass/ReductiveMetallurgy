@@ -173,7 +173,7 @@ public static class Glyphs
 			"reductive-metallurgy-proliferation",
 			"Glyph of Proliferation",
 			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) },
+			40, new HexIndex[6] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0), new HexIndex(-1, 1), new HexIndex(-1, 2), new HexIndex(0, 1) },
 			class_235.method_615(iconpath + "proliferation"),
 			class_235.method_615(iconpath + "proliferation_hover"),
 			class_238.field_1989.field_97.field_386,// triple_glow
@@ -318,9 +318,9 @@ public static class Glyphs
 			PartSimState partSimState = interface2.method_481(part);
 			var simTime = editor.method_504();
 
-			var leftHex = new HexIndex(0, 0);
+			var leftHex = new HexIndex(-1, 0);
 			var rightHex = new HexIndex(1, 0);
-			var selectHex = new HexIndex(0, 1);
+			var selectHex = new HexIndex(-1, 2);
 
 			var currentCycle = 0;
 			if (editor.method_503() != enum_128.Stopped && editor.GetType() == typeof(SolutionEditorScreen))
@@ -446,6 +446,6 @@ public static class Glyphs
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
-		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_0);
 	}
 }

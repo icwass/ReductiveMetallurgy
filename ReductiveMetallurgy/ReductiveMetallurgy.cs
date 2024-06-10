@@ -298,9 +298,9 @@ public class MainClass : QuintessentialMod
 			}
 			else if (partType == Glyphs.Proliferation)
 			{
-				HexIndex hexLeft = new HexIndex(0, 0);
+				HexIndex hexLeft = new HexIndex(-1, 0);
 				HexIndex hexRight = new HexIndex(1, 0);
-				HexIndex hexSelect = new HexIndex(0, 1);
+				HexIndex hexSelect = new HexIndex(-1, 2);
 				if (glyphIsFiring(partSimState))
 				{
 					if (partSimState.field_2744[1] == API.quicksilverAtomType)
