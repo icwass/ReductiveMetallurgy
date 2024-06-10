@@ -105,7 +105,7 @@ public static class Wheel
 		{
 			/*ID*/field_1528 = "reductive-metallurgy-ravari",
 			/*Name*/field_1529 = class_134.method_253("Ravari's Wheel", string.Empty),
-			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyphs of projection and rejection, quicksilver can be stored or discharged.", string.Empty),
+			/*Desc*/field_1530 = class_134.method_253("By using Ravari's wheel with the glyph of proliferation, quicksilver can exchanged for any of the six planetary metals.", string.Empty),
 			/*Cost*/field_1531 = 30,
 			/*Type*/field_1532 = (enum_2) 1,
 			/*Programmable?*/field_1533 = true,

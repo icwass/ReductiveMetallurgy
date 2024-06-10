@@ -153,6 +153,7 @@ public class MainClass : QuintessentialMod
 
 			if (partType == GlyphProjection)
 			{
+				/* ravari's wheel no longer participates in projection nor has quick-transfer
 				// check if we need to project a ravariWheel, or if we need to project by direct-rejection from a ravariWheel
 				HexIndex hexInput = new HexIndex(0, 0);
 				HexIndex hexProject = new HexIndex(1, 0);
@@ -208,6 +209,7 @@ public class MainClass : QuintessentialMod
 					AtomReference promotableRef = foundPromotableMetal ? atomProject : atomProjectRavari;
 					changeAtomTypeOfMetal(promotableRef, projectionResult(promotableRef));
 				}
+				*/
 			}
 			else if (partType == Glyphs.Rejection)
 			{
@@ -224,6 +226,7 @@ public class MainClass : QuintessentialMod
 					||
 					(Wheel.maybeFindRavariWheelAtom(sim_self, part, hexReject).method_99(out atomReject)
 					&& API.applyRejectionRule(atomReject.field_2280, out rejectionResult)
+					&& false // ravari's wheel no longer has quick-transfer
 					)
 				;
 				bool outputNotBlocked = !maybeFindAtom(part, hexOutput, new List<Part>(), true).method_99(out _); // the extra TRUE means we're checking for berlo and ravari wheels, etc
@@ -231,6 +234,7 @@ public class MainClass : QuintessentialMod
 					theRavariSpecial
 					&& Wheel.maybeFindRavariWheelAtom(sim_self, part, hexOutput).method_99(out atomPromoteRavari)
 					&& atomTypeIsProjectable(atomPromoteRavari)
+					&& false // ravari's wheel no longer participates in rejection
 				;
 
 				if (
@@ -345,6 +349,7 @@ public class MainClass : QuintessentialMod
 						bool foundDemotableRavari =
 							Wheel.maybeFindRavariWheelAtom(sim_self, part, hexInput).method_99(out atomInputRavari)
 							&& API.applyRejectionRule(atomInputRavari.field_2280, out rejectionResult)
+							&& false // ravari's wheel no longer has quick-transfer
 						;
 
 						if (foundAtomSelect
