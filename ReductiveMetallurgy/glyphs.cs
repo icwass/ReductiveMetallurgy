@@ -411,7 +411,12 @@ public static class Glyphs
 			}
 
 			Vector2 base_offset = new Vector2(41f, 48f);
-			drawPartGraphic(renderer, proliferationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			var BigTringleHexes = new HexIndex[3] { new HexIndex(0, 0), new HexIndex(-1, 0), new HexIndex(-1, 1) };
+
+			foreach (var hex in BigTringleHexes)
+			{
+				drawPartGraphic(renderer, proliferationGlyph_base, base_offset - hexGraphicalOffset(hex), 0f, Vector2.Zero, new Vector2(-1f, -1f));
+			}
 
 			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
 			drawPartGraphicSpecular(renderer, proliferationGlyph_selectorBowl, textureCenter(proliferationGlyph_selectorBowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
@@ -436,8 +441,12 @@ public static class Glyphs
 				drawPartGraphicSpecular(renderer, proliferationGlyph_outputAboveIris, textureCenter(proliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 			}
 
-			drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+			foreach (var hex in BigTringleHexes)
+			{
+				drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset - hexGraphicalOffset(hex), 0f, Vector2.Zero, Vector2.Zero);
+				drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f) - hexGraphicalOffset(hex));
+			}
+
 			if (flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 		});
 	}
