@@ -55,10 +55,11 @@ public class MainClass : QuintessentialMod
 		QApi.AddPuzzlePermission(API.RejectionPermission, "Glyph of Rejection", "Reductive Metallurgy");
 		QApi.AddPuzzlePermission(API.DepositionPermission, "Glyph of Deposition", "Reductive Metallurgy");
 		QApi.AddPuzzlePermission(API.RavariPermission, "Ravari's Wheel", "Reductive Metallurgy");
-		QApi.AddPuzzlePermission(API.ProliferationPermission, "Glyph of Proliferation", "Reductive Metallurgy");
+        QApi.AddPuzzlePermission(API.ProliferationPermission, "Glyph of Proliferation", "Reductive Metallurgy");
+        QApi.AddPuzzlePermission(API.BigProliferationPermission, "Glyph of Proliferation (Big)", "Reductive Metallurgy");
 
-		//------------------------- HOOKING -------------------------//
-		QApi.RunAfterCycle(My_Method_1832);
+        //------------------------- HOOKING -------------------------//
+        QApi.RunAfterCycle(My_Method_1832);
 
 		IL.SolutionEditorBase.method_1984 += drawRavariWheelAtoms;
 	}
@@ -378,7 +379,50 @@ public class MainClass : QuintessentialMod
 					}
 				}
 			}
-		}
+            else if (partType == Glyphs.BigProliferation)
+            {
+                var hexInput = new HexIndex(1, 1);
+                var hexOutput = new HexIndex(1, -1);
+                var hexSelect = new HexIndex(-1, 1);
+
+                if (glyphIsFiring(partSimState))
+                {
+                    spawnAtomAtHex(part, hexOutput, partSimState.field_2744[0]);
+                }
+                else if (isConsumptionHalfstep
+                        && !maybeFindAtom(part, hexOutput, new List<Part>()).method_99(out _) // output not blocked
+                        && maybeFindAtom(part, hexInput, gripperList).method_99(out AtomReference atomInput) // input atom exists
+                        && !atomInput.field_2281 // a single atom
+                        && !atomInput.field_2282 // not held by a gripper
+                        && atomInput.field_2280 == API.quicksilverAtomType // quicksilver atom
+                    )
+                {
+                    // check if there is an atom on the select hex, and if that atom can be proliferated
+                    AtomReference atomSelect;
+                    bool foundAtomSelect =
+                        (maybeFindAtom(part, hexSelect, gripperList).method_99(out atomSelect)
+                        && API.applyProliferationRule(atomSelect.field_2280)
+                        )
+                        ||
+                        (Wheel.maybeFindRavariWheelAtom(sim_self, part, hexSelect).method_99(out atomSelect)
+                        && API.applyProliferationRule(atomSelect.field_2280)
+                        )
+                    ;
+
+                    if (foundAtomSelect)
+                    {
+                        glyphNeedsToFire(partSimState);
+                        playSound(sim_self, animismusActivate);
+                        Glyphs.DrawSelectorFlash(SEB, part, hexSelect);
+
+                        consumeAtomReference(atomInput);
+
+                        partSimState.field_2744 = new AtomType[1] { atomSelect.field_2280 };
+                        addColliderAtHex(part, hexOutput);
+                    }
+                }
+            }
+        }
 	}
 
 	public override void Unload()

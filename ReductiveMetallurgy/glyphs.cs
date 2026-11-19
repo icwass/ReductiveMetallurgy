@@ -1,10 +1,13 @@
 ﻿//using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using Quintessential;
+using System.Collections.Generic;
+
 //using Quintessential.Settings;
 //using SDL2;
 //using System;
 using System.Linq;
+using System.Reflection;
 //using System.Collections.Generic;
 //using System.Reflection;
 
@@ -16,7 +19,7 @@ using Texture = class_256;
 
 public static class Glyphs
 {
-	public static PartType Rejection, Deposition, Proliferation;
+	public static PartType Rejection, Deposition, Proliferation, BigProliferation;
 	static Texture[] ProliferationFlashAnimation, ProliferationIrisFrames;
 	const string ProliferationPrevStateField = "ReductiveMetallurgy_ProliferationPrevState";
 	const string ProliferationPrevCycleField = "ReductiveMetallurgy_ProliferationPrevCycle";
@@ -169,26 +172,43 @@ public static class Glyphs
 			class_235.method_615(selectpath + "line_stroke"),
 			API.DepositionPermission
 		);
-		Proliferation = makeGlyph(
-			"reductive-metallurgy-proliferation",
-			"Glyph of Proliferation",
-			"The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
-			40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) },
-			class_235.method_615(iconpath + "proliferation"),
-			class_235.method_615(iconpath + "proliferation_hover"),
-			class_238.field_1989.field_97.field_386,// triple_glow
-			class_238.field_1989.field_97.field_387, // triple_stroke
-			API.ProliferationPermission,
-			true // only one!
-		);
+        Proliferation = makeGlyph(
+            "reductive-metallurgy-proliferation",
+            "Glyph of Proliferation",
+            "The glyph of proliferation consumes quicksilver to proliferate a metal atom from another.",
+            40, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1) },
+            class_235.method_615(iconpath + "proliferation"),
+            class_235.method_615(iconpath + "proliferation_hover"),
+            class_238.field_1989.field_97.field_386,// triple_glow
+            class_238.field_1989.field_97.field_387, // triple_stroke
+            API.ProliferationPermission,
+            true // only one!
+        );
+        BigProliferation = makeGlyph(
+            "reductive-metallurgy-bigproliferation",
+            "Glyph of Proliferation",
+            "The glyph of proliferation transmutes an atom of quicksilver into an atom of metal with the same metallicity as an existing atom.",
+            40, new HexIndex[6] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(0, 1), new HexIndex(-1, 1), new HexIndex(1, 1), new HexIndex(1, -1) },
+            class_235.method_615(iconpath + "proliferation"),
+            class_235.method_615(iconpath + "proliferation_hover"),
+            class_235.method_615(selectpath + "proliferation_glow"),
+            class_235.method_615(selectpath + "proliferation_stroke"),
+            API.ProliferationPermission,
+            true // only one!
+        );
 
-		var projector = PartTypes.field_1778;
+        var projector = PartTypes.field_1778;
 		var purifier = PartTypes.field_1779;
 		QApi.AddPartTypeToPanel(Rejection, projector);
 		QApi.AddPartTypeToPanel(Deposition, purifier);
-		QApi.AddPartTypeToPanel(Proliferation, purifier);
+        QApi.AddPartTypeToPanel(Proliferation, purifier);
+        QApi.AddPartTypeToPanel(BigProliferation, purifier);
 
-		path = "reductiveMetallurgy/textures/parts/rejection/";
+        var texturePivotTable = (Dictionary<Texture, Vector2>)typeof(class_107).GetField("field_997", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+        texturePivotTable[BigProliferation.field_1549] = new Vector2(95, 131); // glow
+        texturePivotTable[BigProliferation.field_1550] = new Vector2(95, 131); // stroke
+
+        path = "reductiveMetallurgy/textures/parts/rejection/";
 		Texture rejection_inputBowl = class_235.method_615(path + "input_bowl");
 		Texture rejection_gloss = class_235.method_615(path + "gloss");
 		Texture rejection_glossMask = class_235.method_615(path + "gloss_mask");
@@ -206,17 +226,24 @@ public static class Glyphs
 		Texture deposition_outputSymbolUp = class_235.method_615(path + "output_symbol_up");
 		Texture deposition_outputSymbolDown = class_235.method_615(path + "output_symbol_down");
 
-		path = "reductiveMetallurgy/textures/parts/proliferation/";
-		Texture proliferationGlyph_base = class_235.method_615(path + "base");
-		Texture proliferationGlyph_connectors = class_235.method_615(path + "connectors");
-		Texture proliferationGlyph_gloss = class_235.method_615(path + "gloss");
-		Texture proliferationGlyph_glossMask = class_235.method_615(path + "gloss_mask");
-		Texture proliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
-		Texture proliferationGlyph_outputAboveIris = class_235.method_615(path + "output_above_iris");
-		Texture proliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
-		Texture proliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
+        path = "reductiveMetallurgy/textures/parts/proliferation/";
+        Texture proliferationGlyph_base = class_235.method_615(path + "base");
+        Texture proliferationGlyph_connectors = class_235.method_615(path + "connectors");
+        Texture proliferationGlyph_gloss = class_235.method_615(path + "gloss");
+        Texture proliferationGlyph_glossMask = class_235.method_615(path + "gloss_mask");
+        Texture proliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
+        Texture proliferationGlyph_outputAboveIris = class_235.method_615(path + "output_above_iris");
+        Texture proliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
+        Texture proliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
 
-		ProliferationFlashAnimation = MainClass.fetchTextureArray(10, "reductiveMetallurgy/textures/parts/proliferation_flash.array/flash_");
+        path = "reductiveMetallurgy/textures/parts/bigproliferation/";
+        Texture bigProliferationGlyph_base = class_235.method_615(path + "base");
+        Texture bigProliferationGlyph_inputSymbol = class_235.method_615(path + "input_symbol");
+        Texture bigProliferationGlyph_outputAboveIris = class_235.method_615(path + "output_above_iris");
+        Texture bigProliferationGlyph_selectorBowl = class_235.method_615(path + "selector_bowl");
+        Texture bigProliferationGlyph_selectorSymbols = class_235.method_615(path + "selector_symbols");
+
+        ProliferationFlashAnimation = MainClass.fetchTextureArray(10, "reductiveMetallurgy/textures/parts/proliferation_flash.array/flash_");
 		ProliferationIrisFrames = MainClass.fetchTextureArray(16, "reductiveMetallurgy/textures/parts/proliferation_iris.array/iris_full_");
 
 		// fetch vanilla textures
@@ -312,140 +339,194 @@ public static class Glyphs
 			drawPartGloss(renderer, deposition_gloss, deposition_glossMask, base_offset + new Vector2(0f, -1f));
 		});
 
-		QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
-		{
-			var interface2 = editor.method_507();
-			PartSimState partSimState = interface2.method_481(part);
-			var simTime = editor.method_504();
+        QApi.AddPartType(Proliferation, (part, pos, editor, renderer) =>
+        {
+            var interface2 = editor.method_507();
+            PartSimState partSimState = interface2.method_481(part);
+            var simTime = editor.method_504();
 
-			var leftHex = new HexIndex(0, 0);
-			var rightHex = new HexIndex(1, 0);
-			var selectHex = new HexIndex(0, 1);
+            var leftHex = new HexIndex(0, 0);
+            var rightHex = new HexIndex(1, 0);
+            var selectHex = new HexIndex(0, 1);
 
-			var currentCycle = 0;
-			if (editor.method_503() != enum_128.Stopped && editor.GetType() == typeof(SolutionEditorScreen))
-			{
-				var maybeSim = new DynamicData(editor).Get<Maybe<Sim>>("field_4022");
-				if (maybeSim.method_1085())
-				{
-					currentCycle = maybeSim.method_1087().method_1818();
-				}
-			}
-			var state_dyn = new DynamicData(partSimState);
-			var prevStateOb = state_dyn.Get(ProliferationPrevStateField);
-			var prevCycleOb = state_dyn.Get(ProliferationPrevCycleField);
+            var currentCycle = 0;
+            if (editor.method_503() != enum_128.Stopped && editor.GetType() == typeof(SolutionEditorScreen))
+            {
+                var maybeSim = new DynamicData(editor).Get<Maybe<Sim>>("field_4022");
+                if (maybeSim.method_1085())
+                {
+                    currentCycle = maybeSim.method_1087().method_1818();
+                }
+            }
+            var state_dyn = new DynamicData(partSimState);
+            var prevStateOb = state_dyn.Get(ProliferationPrevStateField);
+            var prevCycleOb = state_dyn.Get(ProliferationPrevCycleField);
 
-			int[] prevState = new int[4] {1, 1, 1, 1};
-			int prevCycle = 0;
-			if (prevStateOb != null)
-			{
-				prevState = (int[]) prevStateOb;
-			}
-			if (prevCycleOb != null)
-			{
-				prevCycle = (int)prevCycleOb;
-			}
+            int[] prevState = new int[4] { 1, 1, 1, 1 };
+            int prevCycle = 0;
+            if (prevStateOb != null)
+            {
+                prevState = (int[])prevStateOb;
+            }
+            if (prevCycleOb != null)
+            {
+                prevCycle = (int)prevCycleOb;
+            }
 
-			bool[] quicksilverAbove = new bool[2] { false, false };
-			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
-			{
-				Atom atom;
-				HexIndex key = part.method_1184(hex);
-				foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
-				{
-					if (molecule.method_1100().TryGetValue(key, out atom) && atom.field_2275 == API.quicksilverAtomType)
-					{
-						quicksilverAbove[hex == leftHex ? 0 : 1] = true;
-						break;
-					}
-				}
-			}
+            bool[] quicksilverAbove = new bool[2] { false, false };
+            foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+            {
+                Atom atom;
+                HexIndex key = part.method_1184(hex);
+                foreach (Molecule molecule in interface2.method_483().Where(x => x.method_1100().Count == 1)) // foreach one-atom molecule
+                {
+                    if (molecule.method_1100().TryGetValue(key, out atom) && atom.field_2275 == API.quicksilverAtomType)
+                    {
+                        quicksilverAbove[hex == leftHex ? 0 : 1] = true;
+                        break;
+                    }
+                }
+            }
 
-			int currentLeftState = 1;
-			int currentRightState = 1;
-			if (quicksilverAbove[0] ^ quicksilverAbove[1])
-			{
-				currentLeftState = quicksilverAbove[0] ? 0 : 2;
-				currentRightState = quicksilverAbove[1] ? 0 : 2;
-			}
+            int currentLeftState = 1;
+            int currentRightState = 1;
+            if (quicksilverAbove[0] ^ quicksilverAbove[1])
+            {
+                currentLeftState = quicksilverAbove[0] ? 0 : 2;
+                currentRightState = quicksilverAbove[1] ? 0 : 2;
+            }
 
-			if (currentCycle > prevCycle || simTime > 0.5)
-			{
-				prevState[0] = prevState[2];
-				prevState[1] = prevState[3];
-				state_dyn.Set(ProliferationPrevStateField, prevState);
-				state_dyn.Set(ProliferationPrevCycleField, currentCycle);
-			}
-			prevState[2] = currentLeftState;
-			prevState[3] = currentRightState;
+            if (currentCycle > prevCycle || simTime > 0.5)
+            {
+                prevState[0] = prevState[2];
+                prevState[1] = prevState[3];
+                state_dyn.Set(ProliferationPrevStateField, prevState);
+                state_dyn.Set(ProliferationPrevCycleField, currentCycle);
+            }
+            prevState[2] = currentLeftState;
+            prevState[3] = currentRightState;
 
-			bool lefty = quicksilverAbove[0] && !quicksilverAbove[1];
-			var inputHex = lefty ? leftHex : rightHex;
-			var outputHex = lefty ? rightHex : leftHex;
+            bool lefty = quicksilverAbove[0] && !quicksilverAbove[1];
+            var inputHex = lefty ? leftHex : rightHex;
+            var outputHex = lefty ? rightHex : leftHex;
 
 
-			int[] index = new int[2] { ProliferationIrisFrames.Length - 1, ProliferationIrisFrames.Length - 1 };
-			index[lefty ? 0 : 1] = 0;
+            int[] index = new int[2] { ProliferationIrisFrames.Length - 1, ProliferationIrisFrames.Length - 1 };
+            index[lefty ? 0 : 1] = 0;
 
-			float num = 0f;
-			bool flag = false;
-			int ioIndex = 0;
+            float num = 0f;
+            bool flag = false;
+            int ioIndex = 0;
 
-			int convertIntervalToFrameIndex(float start, float end)
-			{
-				return class_162.method_404((int)(class_162.method_411(start, end, simTime) * ProliferationIrisFrames.Length), 0, ProliferationIrisFrames.Length - 1);
-			}
+            int convertIntervalToFrameIndex(float start, float end)
+            {
+                return class_162.method_404((int)(class_162.method_411(start, end, simTime) * ProliferationIrisFrames.Length), 0, ProliferationIrisFrames.Length - 1);
+            }
 
-			if (partSimState.field_2743)
-			{
-				ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType ? 1 : 0;
-				index[ioIndex] = convertIntervalToFrameIndex(1f, -1f);
-				num = simTime;
-				outputHex = ioIndex == 1 ? rightHex : leftHex;
-				flag = (double)simTime > 0.5;
-			}
-			else
-			{
-				index[0] = convertIntervalToFrameIndex(prevState[0] / 2f, currentLeftState - prevState[0] / 2f);
-				index[1] = convertIntervalToFrameIndex(prevState[1] / 2f, currentRightState - prevState[1] / 2f);
-			}
+            if (partSimState.field_2743)
+            {
+                ioIndex = partSimState.field_2744[0] == API.quicksilverAtomType ? 1 : 0;
+                index[ioIndex] = convertIntervalToFrameIndex(1f, -1f);
+                num = simTime;
+                outputHex = ioIndex == 1 ? rightHex : leftHex;
+                flag = (double)simTime > 0.5;
+            }
+            else
+            {
+                index[0] = convertIntervalToFrameIndex(prevState[0] / 2f, currentLeftState - prevState[0] / 2f);
+                index[1] = convertIntervalToFrameIndex(prevState[1] / 2f, currentRightState - prevState[1] / 2f);
+            }
 
-			Vector2 base_offset = new Vector2(41f, 48f);
-			drawPartGraphic(renderer, proliferationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+            Vector2 base_offset = new Vector2(41f, 48f);
+            drawPartGraphic(renderer, proliferationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 
-			drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
-			drawPartGraphicSpecular(renderer, proliferationGlyph_selectorBowl, textureCenter(proliferationGlyph_selectorBowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
-			drawPartGraphic(renderer, proliferationGlyph_selectorSymbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+            drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
+            drawPartGraphicSpecular(renderer, proliferationGlyph_selectorBowl, textureCenter(proliferationGlyph_selectorBowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
+            drawPartGraphic(renderer, proliferationGlyph_selectorSymbols, base_offset, -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
 
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
+            drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+            drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
 
-			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
-			{
-				drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphic(renderer, proliferationGlyph_inputSymbol, textureCenter(proliferationGlyph_inputSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
-			}
+            foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+            {
+                drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+                drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+                drawPartGraphic(renderer, proliferationGlyph_inputSymbol, textureCenter(proliferationGlyph_inputSymbol), -renderer.field_1798, hexGraphicalOffset(hex), Vector2.Zero);
+            }
 
-			if (partSimState.field_2743 && !flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
+            if (partSimState.field_2743 && !flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
 
-			foreach (var hex in new HexIndex[2] { leftHex, rightHex })
-			{
-				var thisIndex = index[hex == leftHex ? 0 : 1];
-				drawPartGraphicSpecular(renderer, ProliferationIrisFrames[thisIndex], textureCenter(ProliferationIrisFrames[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				drawPartGraphicSpecular(renderer, proliferationGlyph_outputAboveIris, textureCenter(proliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-			}
+            foreach (var hex in new HexIndex[2] { leftHex, rightHex })
+            {
+                var thisIndex = index[hex == leftHex ? 0 : 1];
+                drawPartGraphicSpecular(renderer, ProliferationIrisFrames[thisIndex], textureCenter(ProliferationIrisFrames[thisIndex]), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+                drawPartGraphicSpecular(renderer, proliferationGlyph_outputAboveIris, textureCenter(proliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+            }
 
-			drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
-			if (flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
-		});
-	}
+            drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+            drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+            if (flag) drawAtomIO(renderer, partSimState.field_2744[ioIndex], outputHex, num);
+        });
+
+        QApi.AddPartType(BigProliferation, (part, pos, editor, renderer) =>
+        {
+            PartSimState partSimState = editor.method_507().method_481(part);
+            var simTime = editor.method_504();
+
+            var inputHex = new HexIndex(1, 1);
+            var outputHex = new HexIndex(1, -1);
+            var selectHex = new HexIndex(-1, 1);
+
+            float partAngle = renderer.field_1798;
+            int index = ProliferationIrisFrames.Length - 1;
+            float num = 0f;
+            bool flag = false;
+            if (partSimState.field_2743)
+            {
+                index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * ProliferationIrisFrames.Length), 0, ProliferationIrisFrames.Length - 1);
+                num = simTime;
+                flag = (double)simTime > 0.5;
+            }
+
+            Vector2 base_offset = new Vector2(86f, 121f);
+            drawPartGraphic(renderer, bigProliferationGlyph_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+
+            drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+            drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+
+
+            drawPartGraphic(renderer, animismus_ringShadow, textureCenter(animismus_ringShadow), 0f, hexGraphicalOffset(selectHex), new Vector2(0f, -3f));
+            drawPartGraphicSpecular(renderer, bigProliferationGlyph_selectorBowl, textureCenter(bigProliferationGlyph_selectorBowl), 0f, hexGraphicalOffset(selectHex), Vector2.Zero);
+            drawPartGraphic(renderer, bigProliferationGlyph_selectorSymbols, new Vector2(41f, 48f), -renderer.field_1798, hexGraphicalOffset(selectHex), Vector2.Zero);
+
+            drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
+            drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(outputHex), new Vector2(0f, -3f));
+
+            drawPartGraphicSpecular(renderer, projectionGlyph_quicksilverInput, textureCenter(projectionGlyph_quicksilverInput), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+            drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+            drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+            drawPartGraphic(renderer, bigProliferationGlyph_inputSymbol, textureCenter(bigProliferationGlyph_inputSymbol), -renderer.field_1798, hexGraphicalOffset(inputHex), Vector2.Zero);
+
+            if (partSimState.field_2743 && !flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+
+            drawPartGraphicSpecular(renderer, ProliferationIrisFrames[index], textureCenter(ProliferationIrisFrames[index]), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+            drawPartGraphicSpecular(renderer, bigProliferationGlyph_outputAboveIris, textureCenter(bigProliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
+            drawPartGraphicSpecular(renderer, bigProliferationGlyph_outputAboveIris, textureCenter(bigProliferationGlyph_outputAboveIris), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
+
+            //drawPartGraphic(renderer, proliferationGlyph_connectors, base_offset, 0f, Vector2.Zero, Vector2.Zero);
+            //drawPartGloss(renderer, proliferationGlyph_gloss, proliferationGlyph_glossMask, base_offset + new Vector2(0f, -1f));
+            if (flag) drawAtomIO(renderer, partSimState.field_2744[0], outputHex, num);
+            
+        });
+    }
 
 	public static void LoadMirrorRules()
 	{
 		FTSIGCTU.MirrorTool.addRule(Rejection, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Deposition, FTSIGCTU.MirrorTool.mirrorHorizontalPart0_0);
 		FTSIGCTU.MirrorTool.addRule(Proliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
-	}
+
+        //TO-DO? - change mirror rule so mirroring keeps the SELECT hex in the same spot
+        FTSIGCTU.MirrorTool.addRule(BigProliferation, FTSIGCTU.MirrorTool.mirrorVerticalPart0_5);
+    }
 }

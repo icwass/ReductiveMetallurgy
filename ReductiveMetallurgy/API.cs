@@ -16,10 +16,11 @@ public static class API
 {
 	public const string RejectionPermission = "ReductiveMetallurgy:rejection";
 	public const string DepositionPermission = "ReductiveMetallurgy:deposition";
-	public const string ProliferationPermission = "ReductiveMetallurgy:proliferation";
-	public const string RavariPermission = "ReductiveMetallurgy:ravari";
+    public const string ProliferationPermission = "ReductiveMetallurgy:proliferation";
+    public const string RavariPermission = "ReductiveMetallurgy:ravari";
+    public const string BigProliferationPermission = "ReductiveMetallurgy:bigproliferation";
 
-	public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+    public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
 	#region atomtype getters
 	public static AtomType quicksilverAtomType => AtomTypes.field_1680;
